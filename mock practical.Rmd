@@ -1,7 +1,7 @@
 ---
-title: "Mock Pratical "
-output: html_document
+title: 'Mock Pratical '
 author: "Guoxin Li"
+output: word_document
 ---
 
 ```{r,echo=FALSE}
@@ -20,382 +20,96 @@ we also do the virtualization of the data, we do a boxplot of three groups
 ```{r, echo=FALSE}
 boxplot(caffe,xlab = "Groups",ylab = "taps/minute",main = "Caffeine Data")
 ```
+
 From the boxplot, it gives a strong picture of what we find in previous step.
 
 ```{r, echo=FALSE}
 library(lattice)
 new_caffe = as.data.frame(cbind(c(caffe$None,caffe$Caff.100ml,caffe$Caff.200ml), factor(rep(c(1,2,3),each = 10))))
 names(new_caffe) = c("taps", "groups")
-histogram(~taps|factor(new_caffe$groups), data = new_caffe)
+histogram(~taps|factor(new_caffe$groups), data = new_caffe, main = "Caffeine Data")
 ```
+
 The histogram of the caffeine data shows that as the does of the caffeien increasing, the distribution of the taps becomes more and more left skewed
 
 Now we are starting to the hypothesis test to give a statistical evidence of the effect of the caffeine.
-```{r}
+Before we doing the test, first need to check if the data follow the normality assumption. we use qqplot to draw the data of None group and 100ml Caffeien group.
+```{r, echo=FALSE}
 #check normality
-qqnorm(caffe$None)
+qqnorm(caffe$None, xlab = "Teoretical Quantiles of None group")
 qqline(caffe$None)
 
-qqnorm(caffe$Caff.100ml)
+qqnorm(caffe$Caff.100ml,xlab = "Teoretical Quantiles of 100ml caffeine")
 qqline(caffe$Caff.100ml)
 ```
 
-t.test
-```{r}
+From the qqplot, we can see that 100ml caffeine group is almost normally distributed sinece all the points almost on the straight line. But for the None group, we can see the lower quantile and higher are far away from the straight line, so the None group data may have a heavy tail of the normal distribution data. From the qqplot general we can say that two groups of data are almost normally distributed, so we can start to do hypothesis test on the data.
+
+For testing the affects of the performance between None group and 100ml Caffeine group, we set up the T-test and our null hypothesis test is the caffeine won't affect tapping speed, and the alternative hypothesis test is the caffeine will increasing the tapping speed. The null hypothesis test equal to the mean of 100ml caffeine - the mean of None caffeine is 0, the alternative is the difference between caffeine group and None group is greater than 0. We set our alpha value is 0.05 
+```{r, echo=FALSE}
 # difference of the tap between two groups
 test = caffe$Caff.100ml - caffe$None
 t.test(test, alternative = "greater", mu = 0)
 ```
+From the T-test, the p-value is 0.04128, which is less than 0.05, so we reject the null hypothesis, we conclude that the 100ml caffeine increasing the tapping speed compare with the group without taking caffeine.
 
-wilcox.test()
-```{r}
+For the same hypothesis test, now we use wilcox test to test it again.
+```{r, echo=FALSE}
 wilcox.test(test, alternative = "greater", mu = 0)
 
 ```
+The p-value is 0.00482, which is less than 0.05, so the wilcox test gives us a same result as T-test.
 
-power.t.test()
-```{r}
+Since we reject the null hypothesis, now we are looking at the power of the t-test, which is the reject the null hypothesis when the alternative is true.
+```{r,echo=FALSE}
+power.t.test(n = 10, delta = 1.6, sd = 2.2, sig.level = 0.05)
+
 power.t.test(n = 31, delta = 1.6, sd = 2.2, sig.level = 0.05)
 ```
-
-Established statistical procedures help ensure appropriate sample sizes so that we reject the null hypothesis not only because of statistical significance, but also because of practical importance. These procedures must consider the size of the type I and type II errors as well as the population variance and the size of the effect.
-
+If we look at the power of the T-test that we did on previous step, the power is 0.337 which is very small compare to 0.8(general value). Even we rejce the null hypothesis test os statistical significance, but the small power of the test gives us a warning which is the sample size of the data is not big enough.If under the same assumption, we need at least 31 students in each group to obtain a power at 0.8. So for give a confidence conclusion of the effect of caffeine, we need more sample data.
 
 
-For views, I first found it under the div whose class contained "views", like this <div class="views supernova" title="217,078 views">217k views</div>. So I searched for "contains(@class, 'views')" and get the text back, which is 217k in the example. But it didn't get me the exactly views number, it gave me 217k instead of 217,078. So I changed my code to get the second attributes, and use strsplit() to seprate the 217,078 and "views". Now I get the exactly number of views.
 
-```{r}
-##make a function for geting view
-view = function(html)
-{
-  # get the views
-  view = xpathSApply(html,"//div[contains(@class, 'views')]", xmlAttrs)[2,]
 
-  # split number of views with character "views"
-  view = strsplit(view, " ")
 
-  # save into dataframe
-  view = do.call(rbind, view)
-  view = view[,1]
-  return(view)
-}
+
+
+
+
+
+
+Now we are starting to the hypothesis test to give a statistical evidence of the effect of the 200ml caffeine.
+Before we doing the test, we also need to check if the data follow the normality assumption. we use qqplot to draw the data of None group and 200ml Caffeien group.
+```{r, echo=FALSE}
+#check normality
+qqnorm(caffe$None)
+qqline(caffe$None)
+
+qqnorm(caffe$Caff.200ml)
+qqline(caffe$Caff.200ml)
 ```
 
-Use same way as what I got for views to get user
+From the qqplot, we can see that 200ml caffeine group is almost normally distributed sinece all the points almost on the straight line. From the qqplot general we can say that two groups of data are almost normally distributed, so we can start to do hypothesis test on the data.
 
-```{r}
-##make a function for geting vote
-
-vote = function(html)
-{
-  # get the vote
-  vote = xpathSApply(html, "//div//span[contains(@class, 'vote-count-post')]//strong", xmlValue)
-
-  # convert to numeric
-  vote = as.numeric(vote)
-  return(vote)
-}
+For testing the affects of the performance between None group and 200ml Caffeine group, we set up same T-test as we test 100ml caffeine 
+```{r, echo=FALSE}
+# difference of the tap between two groups
+test = caffe$Caff.200ml - caffe$None
+t.test(test, alternative = "greater", mu = 0)
 ```
+From the T-test, the p-value is 0.0008388, which is less than 0.05, so we reject the null hypothesis, we conclude that the 200ml caffeine increasing the tapping speed compare with the group without taking caffeine.
 
-Use same way as what I got for views to get answers. But at first I didn't notice that for the answers, it had three different type, "answered", "answered-accepted", and "unanswered". Because the posts were oredered by frequent, most posts were answered, I used "contains(@class, 'answered')", but when I used my all_page function, it stoped at page 14, I looked at the page 14, I found the one post didn't have answer and it marked "unanswered", so I changed my code to "contains(@class, 'status')".
-
-```{r}
-##answerstatus answered-accepted
-
-answer = function(html)
-{
-  # get the answer
-  answer = xpathSApply(html, "//div[contains(@class, 'status')]//strong", xmlValue)
-
-  # convert to numeric
-  answer = as.numeric(answer)
-  return(answer)
-}
-```
-
-For reputation, it was not hard to get, it was in 'reputation-score', but for user "community wiki", it didn't show the reputation score, so I had to use same strategy that I used in date and user to get the reputation-score
-
-```{r}
-##make a function for geting reputation
-reputation = function(html)
-{
-  # get everything in "stated fr"
-  started = getNodeSet(html,"//div[@class='started fr']")
-
-  # get reputation for each indivadual posts
-  reputation = lapply(started, function(x) xpathSApply(x,
-                        ".//span[@class = 'reputation-score']", xmlValue))
-
-  # make it NA from the post doesn't has reputation
-  reputation[reputation == 'list()'] = NA
-
-  # save into dataframe
-  reputation = do.call(rbind, reputation)
-  return(reputation)
-}
+For the same hypothesis test, now we use wilcox test to test it again.
+```{r, echo=FALSE}
+wilcox.test(test, alternative = "greater", mu = 0)
 
 ```
+The p-value is 0.0044423, which is less than 0.05, so the wilcox test gives us a same result as T-test.
 
-Now I have ten small functions each of them extracts the one column of the data frame that Duncan showed us in assignment 6. Now I need to create a function that will combine those ten functions and return me a data frame likse Duncan's.
+Since we reject the null hypothesis, now we are looking at the power of the t-test, which is the reject the null hypothesis when the alternative is true.
+```{r,echo=FALSE}
+power.t.test(n = 10, delta = 1.6, sd = 2.2, sig.level = 0.05)
 
-```{r}
-# make a function of extracting whole page information
-one_page = function(html)
-{
-  # combine everything into one dataframe
-  post = data.frame(id(html))
-  post$date = date(html)
-  post$tags = tag(html)
-  post$title = title(html)
-  post = cbind(post,url(html))
-  post$user = user(html)
-  post$view = view(html)
-  post$vote = vote(html)
-  post$answer = answer(html)
-  post$reputation = reputation(html)
-
-  return(post)
-}
+power.t.test(n = 31, delta = 1.6, sd = 2.2, sig.level = 0.05)
 ```
-
-In order to scrape more than one page, I need to get the information about next page. I wrote a function to get the next page's url. Because under each page, I can click next button to jump to the next page, so there is a hyperlink, I need to get that url so I can go to the next page. So I use "[@rel = 'next']" to search for next button, and use ??/@href?? to get the url.
-
-```{r}
-## make a function to get next page
-next_page = function(html)
-{
-  # get the next page url
-  nxt = unique(unlist(getNodeSet(html, "//a[@rel = 'next']/@href")))
-
-  # paste "http://stackoverflow.com" in front of the url
-  nxt = getRelativeURL(nxt, docName(html))
-  return(nxt)
-}
-
-```
-
-After I got the function to scrape everything from one page, and function to get the next page, now I need to write a function to scrape multiple pages and allow the meto specify a limit on the number of pages to process. Here I used for loop to loop for multiple pages. In my function, it has two variables, one is "u", it is the inital url, which is the first page of stackoverflow. and then "n" decides how many pages I want to scrape. In my for loop, after I used One page function to scrape one page, after that I used next page to get the next page's url and redefine my u to it. "n" decided how many times I want to run this loop. I saved each page into a list, finally I did "do.call(rbind)" to combine all pages into one big data frame.
-
-```{r}
-## make a function to get multiple pages
-## u is the inital page, n is number of pages to extract
-all_page = function(u, n)
-{
-  # read the url
-  doc = htmlParse(u)
-
-  # get data from one page
-  page = list(one_page(doc))
-
-  # loop it for n pages
-  for(i in 2:n)
-    {
-      doc = htmlParse(u)
-      page[i] = list(one_page(doc))
-      u = next_page(doc)
-    }
-
-  # save into dataframe
-  all_page = do.call(rbind,page)
-  return(all_page)
-}
-```
-
-Save the data frame into local
-```{r}
-## save everything in local
-post = all_page(u = "http://stackoverflow.com/questions/tagged/r?sort=frequent&pagesize=15", 100)
-saveRDS(post, file = "all_page.rds")
-
-# show partial of the data frame
-post = readRDS("all_page.rds")
-head(post)
-
-```
-
-**############### Part 3 ##############**
-
-
-set working space and load data
-```{r}
-# set working space and load data
-setwd("I:/R Data/141")
-load("rQAs.rda")
-rqa = rQAs
-```
-
-**# 1 What is the distribution of the number of questions each person answered?**
-
-For this question, I did a subset which only contains type is answer, named it as "answer". Because the question asks number of questions each person ansered, for my subset, it only has user column. Then I table the user to see how many questions did this person answered. Now I get the number of questions each person answered. Then I table the number of questions each person answered, I got the frequency of the number of questions each person answered. I put the frequency as y axis and the number of questions each person answered as x axis, plot them to get the distribution of the number of questions each person answered.
-```{r}
-# get the user name that the type is answer
-answer = rqa[rqa$type == "answer", ]
-
-# count the number of rows by user name
-number = as.data.frame(table(answer))
-
-# table the number of questions each person answered
-number1 = as.data.frame(table(number$Freq))
-
-# make a plot
-plot(number1$Var1, number1$Freq, main = "Number of questions each person answered", xlab = "Number of answer", ylab = "Frequency")
-```
-
-**## 2 What are the most common tags?**
-
-I first load the data, since the tags saved as a character vector, I used strsplit to seprate the tags vector into individual tags. After I splited the tags, I used table() to get the frequency, and ordered the frequency by decreasing order to get the common tags.
-
-```{r}
-# read the data
-all_page = readRDS("all_page.rds")
-
-# get all tags
-get_tags = all_page$tags
-
-# split the tags
-tags = lapply(get_tags, function(x) strsplit(x, " "))
-
-# table the tags
-tags = as.data.frame(table(unlist(tags)))
-
-# order the tags
-tags = tags[order(tags[,2], decreasing = T),]
-
-# show the top 10 common tags
-tags[1:10,]
-```
-
-**## 3 How many questions are about ggplot?**
-
-When I did this question, I didn't realize that question 4 was similar with this question. But when I did question 4, I decided to make a function that can apply to both question 3 and question 4, so I didn't need to write the same thing again. So I made a function at the begining of question 3.
-
-The keyword function is searching for how many times does this keyword appears in the string. It has two variables, one is "data", another one is "reg". The "data" is the string I want to search, the "reg" is the partten that I want to search in the string. Since I had more than one string, so I save them into a list, and apply grepl() function to each list, grepl will return "true" if the string has the partten. Finally I used sum() function to count how many "true" I got, that will be how many questions are about ggplot.
-
-After doing that I also wanted to check how many ggplot in tags, but I read in the Piazza (@1614), Duncan said "As Janice says, when ggplot is in the title, or also the post. Easy is good, until it is too simple. But always  a good place to start.", so I just did it in title.
-```{r}
-# make a function to extract the word from title
-key_word =  function(data, reg)
-{
-  # save data into a list
-  get_title = as.list(data)
-
-  # searching for keyword from data
-  get_title1 = lapply(get_title, function(x) grepl(reg, x, ignore.case = TRUE))
-
-  # counts how many title has keyword
-  counts = sum(unlist(get_title1))
-  return(counts)
-}
-
-# sereaching for "ggplot" from "title"
-key_word(all_page$title, reg = "ggplot")
-```
-
-**## 4 How many questions involve XML, HTML or Web Scraping?**
-
-First I thought this question was similar like question, but after I read the one post on Piazza(@1628), Duncan said "if an answer or comment involves XML or HTML or XPath, then the post involves these topics." So instead of checking title only, I also need to check the answer and comment.
-
-It is more complicated than searching keyword in title. I also made a function to do it. The idea is I seprately get the post's id which have keyword from answer and comment. Since one post may have more than one answer or comment, I used unique() to remove the duplicated id. Then I compared the id from comment and answer, I removed the ids who also are in answer from comment, and combined the id from answer and comment. Since the id is unique for every post, how many id I had means how many posts involve the key word that I wanted to get.
-
-```{r}
-key_word2 =  function(data, reg)
-{
-  # get answer subset
-  answer_data = data[data$type == "answer", ]
-
-  # get "text" part
-  answer = as.list(answer_data[,"text"])
-
-  # searching for keyword from data
-  answer = lapply(answer, function(x) grepl(reg, x, ignore.case = TRUE))
-  answer = unlist(answer)
-
-  # get post id
-  post_answer = answer_data[answer, "qid" ]
-
-  # remove duplicated id
-  post_answer = unique(post_answer)
-
-  # did something for comment again
-  comment_data = data[data$type == "comment", ]
-  comment = as.list(comment_data[,"text"])
-  comment = lapply(comment, function(x) grepl(reg, x, ignore.case = TRUE))
-  comment = unlist(comment)
-
-  post_comment = data[comment, "qid"]
-  post_comment = unique(post_comment)
-
-  # find duplicated id bewtween answer and comment
-  dup = post_answer %in% post_comment
-
-  # find duplicated id in answer
-  dup = post_answer[dup]
-
-  # remove duplicated id comment
-  diff = post_comment %in% dup
-  diff = post_comment[!diff]
-
-  # combine id from answer and comment
-  total = c(post_answer, diff)
-  return(total)
-}
-
-
-xml = key_word2(rqa, reg = "XML")
-length(xml)
-# sereaching for "HTML" from "title"
-htm = key_word2(rqa, reg = "HTML")
-length(htm)
-# sereaching for "Web Scraping" from "title"
-web = key_word2(rqa, reg = "Web Scraping")
-length(web)
-```
-
-
-**## 5 What are the names of the R functions referenced in the titles of the posts?**
-
-First I didn't have any idea to do this question, so I asked on Piazza(@1575). I got help from the student's and TA's respones. Since there are lots of function names, I decided only to find the functions that in R base package. My strategy is to get the all function names from R base and check each function name in the title.
-```{r}
-# get the function from R base
-reg = ls("package:base")
-reg = reg[-1:84]
-# get the title
-get_title = all_page$title
-
-# searching functions in title
-name =  lapply(reg, function(x) sum(grepl(x, get_title, ignore.case = TRUE)))
-
-# save into data frame
-name = do.call(rbind,name)
-name = data.frame(cbind(reg[reg, name))
-name = name[name[,2] != 0,]
-nrow(name)
-```
-
-** 6 What are the names of the R functions referenced in the accepted answers and comments of the posts? We can do better than we did in processing the title of the posts as there is HTML markup and we can find content in code blocks.**
-
-Since the question said HTML markup the code, so I first look at the html, I found that all the codes are under "code></pre>", but I didn't use it, I use regular expression to do this question. Because I found the people put the real code in the text, so every funciton has "()" after the function name. so I split the text vector into characters, use the regular expression to get all the words that has "(" after it, and use gsub to get the word before the "(", so that is the function name.
-
-```{r}
-# load package
-library(stringr)
-
-# set the partten
-regex_fun = "[A-z.]+\\(.*"
-
-# get the text
-text = rqa$text
-
-# split text
-text = strsplit(text, " ")
-text = unlist(text)
-
-# find the partten
-fun= str_extract_all(text, regex_fun)
-fun = unlist(result_fun)
-
-# get the function name
-fun_name = gsub("([A-z.]+)\\(.*", "\\1", result_fun)
-head(fun_name)
-length(unique(fun_name))
-```
+For the power of test, we are in the same situation as we test for 100ml caffeine gourp.If under the same assumption, we need at least 31 students in each group to obtain a power at 0.8. So for give a confidence conclusion of the effect of caffeine, we need more sample data.
