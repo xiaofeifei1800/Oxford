@@ -1,0 +1,26 @@
+\documentclass[11pt]{article}
+
+\title{Linear Models, Assessed Practical}
+\author{Practical No. P785}
+\begin{document}
+\maketitle
+\newpage
+\section{Indudaction}
+
+
+<<>>=
+from having all tables and  gures numbered so that they are easy
+to reference
+@
+\section{Methods}
+The methods in particular can be split in multiple subsections to make
+them easier to read.  There should be only limited overlap with the
+conclusions, which concentrate on the outcomes over the approaches
+used to obtain them
+\section{Results}
+
+\section{Conclusions}
+
+\section{Discussion}
+
+\end{document}
