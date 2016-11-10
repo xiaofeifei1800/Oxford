@@ -1,23 +1,31 @@
 \documentclass[11pt]{article}
+\usepackage{graphicx}
+\usepackage{float}
 
 \title{Linear Models, Assessed Practical}
 \author{Practical No. P785}
 \begin{document}
 \maketitle
 \newpage
+\section{Summary}
+
 \section{Indudaction}
+Hand-eye coordination is affected by multiple factors,the United States Nava Postgraduate School invited 108 people to their lab for this purpose. The equipment used has a rotating disk with a 3/4-inch target spot, the subject needs to contact the target spot with a metal wand, and the total contact time during the 15 seconds was recorded, as well as number of trails, shape of tracker,age and sex of subject were recorded. We are interested in investigating theassociation between contact time with age, sex and shape. In this paper we apply normal linear model on thoes valibles to find a proper model that can explain the relation between each variables with contact time. Before we do fit the models, we exploary and analysis data, which helps us to understand the relation between varibles and build the best model.
 
-
-<<>>=
-from having all tables and  gures numbered so that they are easy
-to reference
-@
 \section{Methods}
-The methods in particular can be split in multiple subsections to make
-them easier to read.  There should be only limited overlap with the
-conclusions, which concentrate on the outcomes over the approaches
-used to obtain them
+linear model, Stepwise both way AIC, boxcox, residual analysis, by four plots, t and f test for the significance of model and coeeficient
+Firstly, Boxplots, histograms and scatter plots are used to give a basic exploration of the contact time with other varibles. 
+
 \section{Results}
+<<label=xcube, fig=TRUE, echo=FALSE, include=FALSE>>=
+library(ggplot2)
+tracking = read.table("P:/R Data/tracklong.txt", header = T)
+plot(tracking)
+@
+\begin{figure}[H]
+\includegraphics[width=0.4\textwidth]{sweave-xcube}}
+\caption{\textbf{A picture of a gull:}{ aaaaaaa}}
+\end{figure}
 
 \section{Conclusions}
 

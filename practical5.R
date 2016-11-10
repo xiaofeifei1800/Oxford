@@ -1,4 +1,4 @@
-library(knitr)
+
 library(ggplot2)
 tracking = read.table("P:/R Data/tracklong.txt", header = T)
 
@@ -7,13 +7,12 @@ tracking = read.table("P:/R Data/tracklong.txt", header = T)
 summary(tracking)
 str(tracking)
 
-plot(tracking)
-
 # time_by_trial = split(tracking$time, tracking$trial)
 # boxplot(time_by_trial, col = "aquamarine")
 # 
 # ggplot(aes(y = time, x = factor(trial),fill = shape), data = tracking) + geom_boxplot()+
 #   facet_wrap(~ sex)
+
 with(tracking,
      table(sex, cut(age, c(0, 18, 60), labels = c("YOUNG", "OLD")))
 )
@@ -41,12 +40,12 @@ lines(smoothingSpline)
 # Time, or some function of Time.You should consider possible interactions between the 
 # explanatory variables. Carry out model selection and outlier analysis.
 
-full_model = lm(time ~ sex * age * trial*shape, data = tracking)
+full_model = lm(time ~ sex * age * trial * shape, data = tracking)
 stp = stepAIC(full_model, direction = "both")
 #null_model = lm(time ~ 1, data = tracking)
 #step(null_model, scope=list(lower=null_model, upper=full_model), direction="forward")
 
-final = lm(formula = time ~ sex + age + trial + shape + sex:age + age:shape, 
+final = lm(formula = time ~ sex + age + trial + shape + sex:age + age:trial + age:shape, 
            data = tracking)
 
 summary(final)
@@ -56,9 +55,10 @@ plot(final)
 boxcox(final,lambda = seq(-2, 2, length = 10))
 
 new_tracking = tracking
-new_tracking$age = (new_tracking$age)^(0.6)
-new_tracking$time = (new_tracking$time)^(0.6)
-new_final = lm(formula = time ~ sex + age + trial + shape + sex:age + age:shape, 
+new_tracking$time = (new_tracking$time)^(0.5)
+temp = lm(time ~ sex * age * trial * shape, data = new_tracking)
+stp = stepAIC(temp, direction = "both")
+new_final = lm(formula = time ~ sex + age + trial + shape + sex:age + age:trial + age:shape, 
            data = new_tracking)
 par(mfrow = c(2, 2))
 plot(new_final)
