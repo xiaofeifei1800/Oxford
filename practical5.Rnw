@@ -17,13 +17,36 @@ linear model, Stepwise both way AIC, boxcox, residual analysis, by four plots, t
 Firstly, Boxplots, histograms and scatter plots are used to give a basic exploration of the contact time with other varibles. 
 
 \section{Results}
-<<label=xcube, fig=TRUE, echo=FALSE, include=FALSE>>=
-library(ggplot2)
-tracking = read.table("P:/R Data/tracklong.txt", header = T)
-plot(tracking)
-@
+\subsection{Data exploration}
 \begin{figure}[H]
-\includegraphics[width=0.4\textwidth]{sweave-xcube}}
+<<echo=FALSE, out.width='6in'>>=
+
+par(mfrow=c(2,2))
+tracking = read.table("P:/R Data/tracklong.txt", header = T)
+plot(time[sex == "M"] ~ age[sex == "M"], data = tracking, pch = 16,
+     ylab = "Time measured in trial (seconds)", xlab = "Age (years)")
+points(time[sex == "F"] ~ age[sex == "F"], data = tracking, pch = 16, col = 2)
+abline(v = 20, lty = 2)
+legend("topright", col = c(2, 1), pch = 16, legend = c("female", "male"))
+
+plot(time[shape == "Box"] ~ age[shape == "Box"], data = tracking, pch = 16,
+     ylab = "Time measured in trial (seconds)", xlab = "Age (years)")
+points(time[shape == "Circle"] ~ age[shape == "Circle"], data = tracking, pch = 16, col = 2)
+abline(v = 20, lty = 2)
+legend("topright", col = c(2, 1), pch = 16, legend = c("Box", "Circle"))
+@
+\caption{\textbf{Scattor plot between times and age:}{ This plot is scattor plot for times and age, we add sex as a factor, which indicate by color, and the vetical line is at age 20}}
+\end{figure}
+
+From figure 1, we  can see there is a big gap between age data, so we add a vertical line at age 20 on plot. If we think the data on the left side of the line is one part, the contact time increases as age increases, for the right side, the contact time decreases as age decrease. 
+
+\begin{figure}[H]
+<<echo=FALSE, out.width='4in'>>=
+par(mar = c(5, 6, 3, 3) + 0.1)
+boxplot(time ~ trial + sex + shape, data = tracking,
+        horizontal = TRUE, xlim = c(0, 17), ylim = c(0, 12), las = 1,
+        xlab = "Value of time")
+@
 \caption{\textbf{A picture of a gull:}{ aaaaaaa}}
 \end{figure}
 

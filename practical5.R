@@ -13,27 +13,24 @@ str(tracking)
 # ggplot(aes(y = time, x = factor(trial),fill = shape), data = tracking) + geom_boxplot()+
 #   facet_wrap(~ sex)
 
-with(tracking,
-     table(sex, cut(age, c(0, 18, 60), labels = c("YOUNG", "OLD")))
-)
+# with(tracking,
+#      table(sex, cut(age, c(0, 20, 60), labels = c("YOUNG", "OLD")))
+# )
 
-plot(Trial1[Sex == "M"] ~ Age[Sex == "M"], data = tracking, pch = 16,
+plot(time[sex == "M"] ~ age[sex == "M"], data = tracking, pch = 16,
      ylab = "Time measured in trial 1 (seconds)", xlab = "Age (years)")
-points(Trial1[Sex == "F"] ~ Age[Sex == "F"], data = tracking, pch = 16, col = 2)
-abline(h = 0, lty = 2)
+points(time[sex == "F"] ~ age[sex == "F"], data = tracking, pch = 16, col = 2)
+abline(v = 20, lty = 2)
 legend("topright", col = c(2, 1), pch = 16, legend = c("female", "male"))
-
-boxplot(time ~ trial, data = tracking, ylim = c(0, 15),
-        ylab = "Abolute value of time (seconds)", xlab = "Trial")
 
 par(mar = c(5, 6, 3, 3) + 0.1)
 boxplot(time ~ trial + sex + shape, data = tracking,
         horizontal = TRUE, xlim = c(0, 17), ylim = c(0, 12), las = 1,
         xlab = "Value of time")
 
-smoothingSpline = smooth.spline(tracking$age, tracking$time, spar=0.35)
-plot(tracking$age, tracking$time)
-lines(smoothingSpline)
+# smoothingSpline = smooth.spline(tracking$age, tracking$time, spar=0.35)
+# plot(tracking$age, tracking$time)
+# lines(smoothingSpline)
 
 # 2.Model the relation between contact time and the trial, the tracker shape, and the
 # subject’s age and sex using a normal linear model for the response
