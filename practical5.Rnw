@@ -1,27 +1,55 @@
 \documentclass[11pt]{article}
 \usepackage{graphicx}
 \usepackage{float}
+\restylefloat{table}
+\usepackage[a4paper, total={6in, 8in}]{geometry}
+
 
 \title{Linear Models, Assessed Practical}
-\author{Practical No. P785}
+\author{Practical No. P049}
 \begin{document}
 \maketitle
 \newpage
 \section{Summary}
 
 \section{Indudaction}
-Hand-eye coordination is affected by multiple factors,the United States Nava Postgraduate School invited 108 people to their lab for this purpose. The equipment used has a rotating disk with a 3/4-inch target spot, the subject needs to contact the target spot with a metal wand, and the total contact time during the 15 seconds was recorded, as well as number of trails, shape of tracker,age and sex of subject were recorded. We are interested in investigating theassociation between contact time with age, sex and shape. In this paper we apply normal linear model on thoes valibles to find a proper model that can explain the relation between each variables with contact time. Before we do fit the models, we exploary and analysis data, which helps us to understand the relation between varibles and build the best model.
+Motor learning and Hand-eye coordination are affected by multiple factors,the United States Nava Postgraduate School invited 108 people to their lab for discovering what affects Motor learning and hand-eye coordination.The experiment used a rotating disk with a 3/4-inch target spot, the subject needs to contact the target spot with a metal wand, and the total contact time during the 15 seconds was recorded, as well as number of trails, shape of tracker,age and sex of subject were recorded. We are interested in investigating the association between contact time with age, sex and shape. In this paper we apply normal linear model on thoes valibles to find a proper model that can explain the relation between each variables with contact time, and how these variables explain the way subjects improve across trials. Before we fit the models, we exploary and analysis data, which helps us to understand the relation between varibles and build the best model. Based AIC(Akaike information criterion) and the information we find in data, we select the best model from all the possible models. Finally we explain what find we in the model, and answer the two question that We give previou, 
 
 \section{Methods}
-linear model, Stepwise both way AIC, boxcox, residual analysis, by four plots, t and f test for the significance of model and coeeficient
-Firstly, Boxplots, histograms and scatter plots are used to give a basic exploration of the contact time with other varibles. 
+Firstly, Boxplots, histograms and scatter plots are used to give a basic exploration of the contact time with other varibles. Linear models are the model that we used to fit our data, we only consider normal linear models with fixed effects. Forward stepwise based on AIC is used to select the best model based on minimumlizing AIC score, we use this method to aotumativly select proper model for us, but we still need human judgment for the results that stepwise gives us. Boxcox is used to find if the data need transfermation and find a simple transformation that leads to normalityDiagnostic plots are used to check the data follow the assumtions and outliers analysis. T test and F test are used to check the significance of models and parameters in models.
 
 \section{Results}
 \subsection{Data exploration}
 \begin{figure}[H]
-<<echo=FALSE, out.width='6in'>>=
+<<echo=FALSE>>=
+tracking = read.table("P:/R Data/tracking.txt", header = T)
+plot(tracking)
+@
+  \caption{\textbf{Pairwies plots: }{plot pairwise combinations of variables in scatterplots.}}
+\end{figure}
 
-par(mfrow=c(2,2))
+\begin{table}[H]
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+ & Trial1 & Trial2 & Trial3 & Trial4 \\ 
+  \hline
+Trial1 & 1.00 & 0.91 & 0.90 & 0.89 \\ 
+  Trial2 & 0.91 & 1.00 & 0.92 & 0.93 \\ 
+  Trial3 & 0.90 & 0.92 & 1.00 & 0.94 \\ 
+  Trial4 & 0.89 & 0.93 & 0.94 & 1.00 \\ 
+   \hline
+   \caption{\textbf{Correlation table: }{correlation matrix of trails}}
+\end{tabular}
+\end{table}
+
+By looking at summaries(table 1) and exploratory plots(figure 1), we find the plot between each trials are highly coorlated with each other, we decide to come all trails as one varible by using long form. The long form is one row per observation, rather than one row per 5 observations: the new data frame with columns sex, age, trial and time. The trial variable takes values 1, 2, 3, 4, indicating the trial number. The time gives the time measured in the given trial.
+
+\begin{figure}[H]
+\centering
+<<echo=FALSE, out.width='4in'>>=
+
+par(mfrow=c(1,2))
 tracking = read.table("P:/R Data/tracklong.txt", header = T)
 plot(time[sex == "M"] ~ age[sex == "M"], data = tracking, pch = 16,
      ylab = "Time measured in trial (seconds)", xlab = "Age (years)")
@@ -35,23 +63,110 @@ points(time[shape == "Circle"] ~ age[shape == "Circle"], data = tracking, pch = 
 abline(v = 20, lty = 2)
 legend("topright", col = c(2, 1), pch = 16, legend = c("Box", "Circle"))
 @
-\caption{\textbf{Scattor plot between times and age:}{ This plot is scattor plot for times and age, we add sex as a factor, which indicate by color, and the vetical line is at age 20}}
+  \caption{\textbf{Scattor plot between times and age:} \emph{Left: }{This plot is scattor plot for times and age, we add sex as a factor, which indicate by color, and the vetical line is at age 20. }\emph{Right: }{change the factor to shape.}}
 \end{figure}
 
-From figure 1, we  can see there is a big gap between age data, so we add a vertical line at age 20 on plot. If we think the data on the left side of the line is one part, the contact time increases as age increases, for the right side, the contact time decreases as age decrease. 
+From figure 2, we can see there is a big gap between age, so we add a vertical line at age 20 on plot, it separates the plot into two parts. If we look at the left part, the contact time increases as age increases. For the right side, the contact time decreases as age decrease. From the left plot, it indicates more male are older than 20, and male's performance has higher variation then female. From the right plot, at same age, Box gives higher performance than cirecle. We will consider age, and shape are potential variables in our model.
 
 \begin{figure}[H]
+\centering
 <<echo=FALSE, out.width='4in'>>=
 par(mar = c(5, 6, 3, 3) + 0.1)
 boxplot(time ~ trial + sex + shape, data = tracking,
         horizontal = TRUE, xlim = c(0, 17), ylim = c(0, 12), las = 1,
         xlab = "Value of time")
 @
-\caption{\textbf{A picture of a gull:}{ aaaaaaa}}
+
+<<echo=FALSE, out.width='4in'>>=
+par(mfrow=c(2,2))
+boxplot(time ~ trial, data = tracking, ylim = c(0, 12), las = 1,xlab = "Trials", ylab = "Time (seconds)")
+boxplot(time ~ sex, data = tracking, ylim = c(0, 12), las = 1,xlab = "Sex(F: Female, M: Male)",ylab = "Time (seconds)")
+boxplot(time ~ shape, data = tracking, ylim = c(0, 12), las = 1,xlab = "Shape",ylab = "Time (seconds)")
+@
+  \caption{\textbf{Box plot of all categoral varibles respect to time: } \emph{Top:}{ On the y aixs 1,2,3,4 represent the different trials, M, F represent male and female, Box, Circle represent different shapes. For example, the top label on the y aixs, 4.M.Circle, means the contact time for a male who did his fourth trail on a circle shape. }\emph{Middle left:}{ Box plot of Time and Trails. }\emph{Middle right:}{ Box plot of Time and Sex. }\emph{Bottom:}{ Box plot of Shapes.}}
 \end{figure}
 
-\section{Conclusions}
+We first draw the top plot in figure 3, put all categoral varibles together, we can the mean value and the variance for different groups are different, so some variables affects the time, in order to make the affect easier to see, we draw the categoral varibles with time separatly, which are middle left, middle right and bottom plots in figure 3.
+From this plot, increasing with trial, circle high time but high variance, M high time but high variance, there are all have relation with time.
 
+\subsection{Modeling data}
+<<>>=
+library(MASS)
+full_model = lm(time ~ sex * age * trial * shape, data = tracking)
+stp = stepAIC(full_model, direction = "both")
+final = lm(formula = time ~ sex + age + trial + shape + sex:age + age:trial + age:shape, 
+           data = tracking)
+@
+Model selection. From the stepwise by using AIC metrics, we find the model "time ~ sex + age + trial + shape + sex:age + age:trial + age:shape" gives us the minimum AIC value, we choose this one as our model
+
+<<>>=
+summary(final)
+@
+
+
+<<>>=
+boxcox(final,lambda = seq(0, 1, length = 10))
+@
+boxcox
+
+<<>>=
+new_tracking = tracking
+new_tracking$time = (new_tracking$time)^(0.5)
+temp = lm(time ~ sex * age * trial * shape, data = new_tracking)
+stp = stepAIC(temp, direction = "both")
+new_final = lm(formula = time ~ sex + age + trial + shape + sex:age + age:trial + age:shape, 
+           data = new_tracking)
+@
+refit and select
+
+<<>>=
+summary(new_final)
+par(mfrow=c(2,2))
+plot(final)
+plot(new_final)
+@
+compare before and after transfermatioin
+
+<<>>=
+new_tracking$grp <- factor(ifelse(new_tracking$age < 20, "young", "old"),
+                      levels = c("young", "old"))
+
+plot(new_tracking$grp,new_tracking$time)
+@
+Are the responses in the older and younger subjects different?
+
+
+<<>>=
+null_model = lm(time ~ 1, data = tracking)
+step(null_model, scope=list(lower=null_model, upper=temp), direction="both")
+temp = lm(sqrt(time) ~ sex * age * factor(trial) * shape * grp, data = tracking)
+stp = stepAIC(temp, direction = "both")
+@
+
+<<>>=
+new_tracking$trial = factor(new_tracking$trial)
+temp = lm(time ~ sex * age * trial * shape*grp, data = new_tracking)
+stp = stepAIC(temp, direction = "both")
+@
+Trial might  be  treated  as  a  categorical  variable  with  four  levels,  or  as  a
+continuous variable taking values 1, 2, 3 and 4. What are the relative merits of
+these model choices?
+
+<<>>=
+
+@
+
+\section{Conclusions}
+Interpret your final normal linear model for contact time, and aim to produce one
+or two plots which illustrate your findings graphically.
+
+nvestigate how contact time depends on
+Age
+,
+Sex
+and
+Shape
+, and how these variables explain the way subjects improve across trials.
 \section{Discussion}
 
 \end{document}

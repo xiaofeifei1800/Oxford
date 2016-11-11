@@ -71,4 +71,3 @@ plot(tracking$grp,tracking$time)
 #(b)Trial might  be  treated  as  a  categorical  variable  with  four  levels,  or  as  a
 # continuous variable taking values 1, 2, 3 and 4. What are the relative merits of
 # these model choices?
-
