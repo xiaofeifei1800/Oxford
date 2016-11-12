@@ -8,6 +8,7 @@
 \title{Linear Models, Assessed Practical}
 \author{Practical No. P049}
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 \maketitle
 \newpage
 \section{Summary}
@@ -22,7 +23,7 @@ Firstly, Boxplots, histograms and scatter plots are used to give a basic explora
 \subsection{Data exploration}
 \begin{figure}[H]
 <<echo=FALSE>>=
-tracking = read.table("P:/R Data/tracking.txt", header = T)
+tracking = read.table("I:/Oxford/R Data/tracking.txt", header = T)
 plot(tracking)
 @
   \caption{\textbf{Pairwies plots: }{plot pairwise combinations of variables in scatterplots.}}
@@ -50,7 +51,7 @@ By looking at summaries(table 1) and exploratory plots(figure 1), we find the pl
 <<echo=FALSE, out.width='4in'>>=
 
 par(mfrow=c(1,2))
-tracking = read.table("P:/R Data/tracklong.txt", header = T)
+tracking = read.table("I:/Oxford/R Data/tracklong.txt", header = T)
 plot(time[sex == "M"] ~ age[sex == "M"], data = tracking, pch = 16,
      ylab = "Time measured in trial (seconds)", xlab = "Age (years)")
 points(time[sex == "F"] ~ age[sex == "F"], data = tracking, pch = 16, col = 2)
@@ -77,7 +78,7 @@ boxplot(time ~ trial + sex + shape, data = tracking,
         xlab = "Value of time")
 @
 
-<<echo=FALSE, out.width='4in'>>=
+<<echo=FALSE, out.width='4in', fig = True>>=
 par(mfrow=c(2,2))
 boxplot(time ~ trial, data = tracking, ylim = c(0, 12), las = 1,xlab = "Trials", ylab = "Time (seconds)")
 boxplot(time ~ sex, data = tracking, ylim = c(0, 12), las = 1,xlab = "Sex(F: Female, M: Male)",ylab = "Time (seconds)")
@@ -86,48 +87,71 @@ boxplot(time ~ shape, data = tracking, ylim = c(0, 12), las = 1,xlab = "Shape",y
   \caption{\textbf{Box plot of all categoral varibles respect to time: } \emph{Top:}{ On the y aixs 1,2,3,4 represent the different trials, M, F represent male and female, Box, Circle represent different shapes. For example, the top label on the y aixs, 4.M.Circle, means the contact time for a male who did his fourth trail on a circle shape. }\emph{Middle left:}{ Box plot of Time and Trails. }\emph{Middle right:}{ Box plot of Time and Sex. }\emph{Bottom:}{ Box plot of Shapes.}}
 \end{figure}
 
-We first draw the top plot in figure 3, put all categoral varibles together, we can the mean value and the variance for different groups are different, so some variables affects the time, in order to make the affect easier to see, we draw the categoral varibles with time separatly, which are middle left, middle right and bottom plots in figure 3.
+We first draw the top plot in figure 3, put all categoral varibles together, we can see the mean values and the variances for different groups are different, so some variables affect the time, in order to make the affect easier to see, we draw the categoral varibles with time separatly, which are middle left, middle right and bottom plots in figure 3. From Middle left plot, it gives us an increasing trend across trails, the more trails subjects did, the better result they got. From the middle right, we can see that male has a better results than female, but the male has a high variance compares to female. But from bottom plot, means of two groups dont look significantly different, but affects the variance, we can see the Circle has bigger variance than Box. 
+
 From this plot, increasing with trial, circle high time but high variance, M high time but high variance, there are all have relation with time.
 
 \subsection{Modeling data}
-<<>>=
+<<echo = False>>=
 library(MASS)
-full_model = lm(time ~ sex * age * trial * shape, data = tracking)
-stp = stepAIC(full_model, direction = "both")
-final = lm(formula = time ~ sex + age + trial + shape + sex:age + age:trial + age:shape, 
+model1 = lm(time ~ sex + age + trial, data = tracking)
+stp = stepAIC(model1, 
+              scope = list(upper = ~sex * age * trial * shape,lower = ~1))
+model2 = lm(formula = time ~ sex + age + trial + shape + sex:age + age:trial + age:shape, 
            data = tracking)
 @
-Model selection. From the stepwise by using AIC metrics, we find the model "time ~ sex + age + trial + shape + sex:age + age:trial + age:shape" gives us the minimum AIC value, we choose this one as our model
+Based on what we get from Data exploration part, we decide our inital model to be "time ~ sex + age + trial". we put it into "stepAIC" function, the stepAIC returns us "time ~ sex + age + trial + shape + age:shape + sex:age + age:trial" as the best model with AIC equal to 492.87. Now we update our model to the model that stepAIC gives us.
 
-<<>>=
-summary(final)
+<<echo = False>>=
+summary(model2)
 @
 
+\begin{table}[H]
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+ & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
+  \hline
+(Intercept) & 1.9120 & 0.4350 & 4.40 & 0.0000 \\ 
+  sexM & -0.2503 & 0.3078 & -0.81 & 0.4167 \\ 
+  age & -0.0084 & 0.0171 & -0.49 & 0.6223 \\ 
+  trial & 0.1076 & 0.1360 & 0.79 & 0.4293 \\ 
+  shapeCircle & -1.1749 & 0.3101 & -3.79 & 0.0002 \\ 
+  sexM:age & 0.0550 & 0.0123 & 4.48 & 0.0000 \\ 
+  age:trial & 0.0117 & 0.0052 & 2.23 & 0.0261 \\ 
+  age:shapeCircle & 0.1220 & 0.0125 & 9.74 & 0.0000 \\ 
+   \hline
+\end{tabular}
+\end{table}
 
-<<>>=
-boxcox(final,lambda = seq(0, 1, length = 10))
+R does F-test for the model, the null hypothesis for F-test is the model is not significant, the alternative is the model is significant.R gives p-value of F-test equal to 2.210-16, which is less than 0.01, so the model is significant at 0.01 alpha level. But if we look at the T-test for the parameters, which tests if the parameters are significant, there are three variables(sex, age, trails) are not significant at 0.01 significant level. But only if the model doesn't have interaction parts, the interpretation of the hypothesis test of single  variables do not change, since we have interaction between age and sex, age and tiral, age and shape, so the hypothesis tests for sex, age, and trial might not be useful. So we keep this model as our best model for right now.
+
+<<echo = False>>=
+boxcox(model2,lambda = seq(0, 1, length = 10))
 @
-boxcox
+The result from boxcox indicates that we need to do variable transfermation for our data, and we transfer our y to y0.5.
 
-<<>>=
+<<echo = False>>=
 new_tracking = tracking
 new_tracking$time = (new_tracking$time)^(0.5)
-temp = lm(time ~ sex * age * trial * shape, data = new_tracking)
-stp = stepAIC(temp, direction = "both")
-new_final = lm(formula = time ~ sex + age + trial + shape + sex:age + age:trial + age:shape, 
+model3 = lm(formula = time ~ sex + age + trial + shape + sex:age + age:trial + age:shape, 
+           data = new_tracking)
+stp = stepAIC(model3, 
+              scope = list(upper = ~sex * age * trial * shape,lower = ~1))
+
+model4 = lm(formula = time ~ sex + age + trial + shape + sex:age + age:shape,
            data = new_tracking)
 @
-refit and select
+After we do the boxcox variable transfermation, we refit the data, and do the stepAIC again. Now this time, the stepAIC gives us"time ~ sex + age + trial + shape + sex:age + age:trial + age:shape + sex:shape" as the best model. 
 
-<<>>=
-summary(new_final)
+<<echo = False>>=
+summary(model4)
 par(mfrow=c(2,2))
-plot(final)
-plot(new_final)
+plot(model4)
 @
 compare before and after transfermatioin
 
-<<>>=
+<<echo = False>>=
 new_tracking$grp <- factor(ifelse(new_tracking$age < 20, "young", "old"),
                       levels = c("young", "old"))
 
@@ -136,14 +160,14 @@ plot(new_tracking$grp,new_tracking$time)
 Are the responses in the older and younger subjects different?
 
 
-<<>>=
-null_model = lm(time ~ 1, data = tracking)
-step(null_model, scope=list(lower=null_model, upper=temp), direction="both")
-temp = lm(sqrt(time) ~ sex * age * factor(trial) * shape * grp, data = tracking)
-stp = stepAIC(temp, direction = "both")
+<<echo = False>>=
+# null_model = lm(time ~ 1, data = tracking)
+# step(null_model, scope=list(lower=null_model, upper=temp), direction="both")
+# temp = lm(sqrt(time) ~ sex * age * factor(trial) * shape * grp, data = tracking)
+# stp = stepAIC(temp, direction = "both")
 @
 
-<<>>=
+<<echo = False>>=
 new_tracking$trial = factor(new_tracking$trial)
 temp = lm(time ~ sex * age * trial * shape*grp, data = new_tracking)
 stp = stepAIC(temp, direction = "both")
@@ -152,21 +176,12 @@ Trial might  be  treated  as  a  categorical  variable  with  four  levels,  or 
 continuous variable taking values 1, 2, 3 and 4. What are the relative merits of
 these model choices?
 
-<<>>=
+<<echo = False>>=
 
 @
 
 \section{Conclusions}
-Interpret your final normal linear model for contact time, and aim to produce one
-or two plots which illustrate your findings graphically.
-
-nvestigate how contact time depends on
-Age
-,
-Sex
-and
-Shape
-, and how these variables explain the way subjects improve across trials.
+Interpret your final normal linear model for contact time, and aim to produce one or two plots which illustrate your findings graphically.nvestigate how contact time depends on Age, Sex and Shape, and how these variables explain the way subjects improve across trials.
 \section{Discussion}
-
+x2, data split two linear model
 \end{document}
