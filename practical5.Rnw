@@ -2,6 +2,8 @@
 \usepackage{graphicx}
 \usepackage{float}
 \restylefloat{table}
+\usepackage{subcaption}
+\renewcommand\thesubfigure{\roman{subfigure}}
 \usepackage[a4paper, total={6in, 8in}]{geometry}
 
 
@@ -137,6 +139,30 @@ boxcox(model2,lambda = seq(0, 1, length = 10))
 
 The result from boxcox indicates that the 95\% confident interval for $\lambda$ is around 0.5 to 0.7. we need to transfer the time to the power of the $\lambda$, here we choose $\lambda$ to be 0.5, which is the square root of the time.
 
+We look at the Q-Q plot for time before and after transfermation
+\begin{figure}[H]
+
+\begin{minipage}[b]{.5\linewidth}
+\centering%
+<<>>=
+qqnorm(tracking$time)
+lines(x=c(-3,3), y = c(0,12))
+@
+\subcaption{Q-Q plot for value of time}
+\end{minipage}
+\hfill%
+\begin{minipage}[b]{.5\linewidth}
+\centering%
+<<echo=FALSE>>=
+qqnorm(sqrt(tracking$time))
+lines(x=c(-3,3), y = c(0,3.5))
+@
+\subcaption{Q-Q plot for $\sqrt{time}$}
+\end{minipage}
+\caption{Q-Q plot for checking time varible}
+\end{figure}
+
+In the Q-Q plot, the most of the points are on the gray line. We consider the errors to follow a normal distribution. We can see the right plot has more data on the gray line than left plot, we can see that after the transformation, the time varible is more normal.
 
 <<echo=FALSE>>=
 new_tracking = tracking
@@ -186,6 +212,7 @@ The upper right plot is a Q-Qnorm plot of the residuals. This plot evaluates the
 The lower left plot is a scale-location plot. The regression assumes homoscedasticity, that the variance in the residuals doesn’t change as a function of x. If that assumption is correct, then the red line should be relatively flat, the red line is flat here. This shows that the errors are homoscedasticity.
 The lower right plot shows the standardized residuals against leverage. Leverage is a measure of how much each data point influences the regression. Here, we can see that R automatically marked the outliers, but they are still in the cook's distance, and also look at Q-Q plot, there are no points obviously far away from diagnoal, so we don't treat them as outlier.
 
+\subsection{Data transfermation}
 As we find in Data exploration section, the age data has a gap around age 20, so we split the age into two groups that are greater than 20, and less than 20. We do a box plot to see if this factor will affect the time.
 \begin{figure}[H]
 \centering
@@ -201,13 +228,15 @@ From the box plot, we can see that age group has a significant on time, the old 
 
 
 <<echo=FALSE>>=
-model3 = lm(formula = time ~ sex + age + trial + shape + grp + sex:age + age:shape,
-           data = new_tracking)
-stp = stepAIC(model3,
-              scope = list(upper = ~sex * age * trial * shape * grp,lower = ~1))
-model4 = lm(formula = time~ sex + age + trial + shape + grp + sex:age + age:shape + 
-    age:grp + shape:grp + age:trial, data = new_tracking)
+# model3 = lm(formula = time ~ sex + age + trial + shape + grp + sex:age + age:shape,
+#            data = new_tracking)
+# stp = stepAIC(model3,
+#               scope = list(upper = ~sex * age * trial * shape * grp,lower = ~1))
+# model4 = lm(formula = time~ sex + age + trial + shape + grp + sex:age + age:shape + 
+#     age:grp + shape:grp + age:trial, data = new_tracking)
 @
+
+Another variable that we need consider to do transfermation is \textbf{Trails}. The \textbf{Trails} can be treated either as numerical or categrocal, we need to spercify how the different types will affect our model. If we treat \textbf{Trails} as numerical data, then the different trails will be marked as 1,2,3,4. If we fit it into model, we will get $\beta_{trails}\cdot Trails$ term, and \textbf{Trials} can be 1 to 4. That means, if the subject does the experment again, he/she will increase the contant time by $\beta_{trails}$. But we don't think that is true, because the more experment that subject does, the less contant time that subject can improve. We believe if we treat trails as a categoral data is more proper in this case. we make trail as factor and add age factor into data. 
 
 <<echo=FALSE>>=
 new_tracking$trial = factor(new_tracking$trial)
@@ -215,16 +244,37 @@ model3 = lm(formula = time ~ sex + age + trial + shape + grp + sex:age + age:sha
            data = new_tracking)
 stp = stepAIC(model3,
               scope = list(upper = ~sex * age * trial * shape * grp,lower = ~1))
-model5 = lm(formula = time ~ sex + age + trial + shape + grp + sex:age + age:shape + 
+model5 = lm(formula = time ~ sex + age + trial + shape + grp + sex:age + age:shape +
     age:grp + shape:grp, data = new_tracking)
 @
-Trial might  be  treated  as  a  categorical  variable  with  four  levels,  or  as  a
-continuous variable taking values 1, 2, 3 and 4. What are the relative merits of
-these model choices?
+we use new data to do StepAIC again, it gives "time ~ sex + age + trial + shape + grp + sex:age + age:shape + age:grp + shape:grp" as best model.
 
 <<echo=FALSE>>=
-
+# summary(model5)
 @
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+ & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
+  \hline
+(Intercept) & 0.0254 & 0.1137 & 0.22 & 0.8231 \\ 
+  sexM & -0.1422 & 0.0663 & -2.14 & 0.0326 \\ 
+  age & 0.1201 & 0.0098 & 12.30 & 0.0000 \\ 
+  trial2 & 0.1574 & 0.0513 & 3.07 & 0.0023 \\ 
+  trial3 & 0.2312 & 0.0513 & 4.51 & 0.0000 \\ 
+  trial4 & 0.2913 & 0.0513 & 5.68 & 0.0000 \\ 
+  shapeCircle & -0.2489 & 0.0910 & -2.73 & 0.0065 \\ 
+  grpold & 3.5755 & 0.1925 & 18.58 & 0.0000 \\ 
+  sexM:age & 0.0146 & 0.0026 & 5.52 & 0.0000 \\ 
+  age:shapeCircle & 0.0516 & 0.0082 & 6.30 & 0.0000 \\ 
+  age:grpold & -0.1743 & 0.0101 & -17.25 & 0.0000 \\ 
+  shapeCircle:grpold & -0.9847 & 0.2369 & -4.16 & 0.0000 \\ 
+   \hline
+   \caption{\textbf{Summary table for model5}}
+\end{tabular}
+\end{table}
 
 \section{Conclusions}
 Interpret your final normal linear model for contact time, and aim to produce one or two plots which illustrate your findings graphically.nvestigate how contact time depends on Age, Sex and Shape, and how these variables explain the way subjects improve across trials.
