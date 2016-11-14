@@ -10,16 +10,17 @@
 \title{Linear Models, Assessed Practical}
 \author{Practical No. P049}
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 
 \maketitle
 \newpage
 \section{Summary}
 
 \section{Induction}
-Motor learning and Hand-eye coordination are affected by multiple factors,the United States Nava Postgraduate School invited 108 people to their lab for discovering what affects Motor learning and hand-eye coordination.The experiment used a rotating disk with a 3/4-inch target spot, the subject needs to contact the target spot with a metal wand, and the total contact time during the 15 seconds was recorded, as well as number of trails, shape of tracker,age and sex of subject were recorded. We are interested in investigating the association between contact time with age, sex and shape. In this paper we apply normal linear model on those variables to find a proper model that can explain the relation between each variables with contact time, and how these variables explain the way subjects improve across trials. Before we fit the models, we explore and analysis data, which helps us to understand the relation between variables and build the best model. Based AIC(Akaike information criterion) and the information we find in data, we select the best model from all the possible models. Finally we explain what find we in the model, and answer the two question that We give previous, 
+Motor learning and Hand-eye coordination are affected by multiple factors,the United States Nava Postgraduate School invited 108 people to their lab for discovering what affects Motor learning and hand-eye coordination.The experiment used a rotating disk with a 3/4-inch target spot, the subject needs to contact the target spot with a metal wand, and the total contact time during the 15 seconds was recorded, as well as number of trails, shape of tracker, age and sex of subject were recorded. We are interested in investigating the association between contact time with age, sex and shape. In this paper we apply normal linear model on those variables to find a proper model that can explain the relation between each variables with contact time, and how these variables explain the way subjects improve across trials. Before we fit the models, we explore and analysis data, which helps us to understand the relation between variables. Based AIC(Akaike information criterion) and the information we find in data, we select the best model from all the possible models. Finally we explain what find we in the model, and answer the two question that We give previous.
 
 \section{Methods}
-Firstly, Box plots, histograms and scatter plots are used to give a basic exploration of the contact time with other variables Linear models are the model that we used to fit our data, we only consider normal linear models with fixed effects. Forward stepwise based on AIC is used to select the best model based on minimizing AIC score, we use this method to automatic select proper model for us, but we still need human judgement for the results that stepwise gives us. Boxcox is used to find if the data need transformation and find a simple transformation that leads to normality. Diagnostic plots are used to check the data follow the assumptions and outliers analysis. T test and F test are used to check the significance of models and parameters in models.
+Firstly, Box plots, histograms and scatter plots are used to give a basic exploration of the contact time with other variables. Linear models are the model that we used to fit our data, we only consider normal linear models with fixed effects. Forward stepwise based on AIC is used to select the best model based on minimizing AIC score, we use this method to automatic select proper model for us, but we still need human judgement for the results that stepwise gives us. Boxcox is used to find if the data need transformation and find a simple transformation that leads to normality. Diagnostic plots are used to check the data follow the assumptions and outliers analysis. T test and F test are used to check the significance of models and parameters.
 
 \section{Results}
 \subsection{Data exploration}
@@ -46,7 +47,7 @@ Trial1 & 1.00 & 0.91 & 0.90 & 0.89 \\
 \end{tabular}
 \end{table}
 
-By looking at summaries(table 1) and exploratory plots(figure 1), we find the plot between each trials are highly correlated with each other, we decide to come all trails as one variable by using long form. The long form is one row per observation, rather than one row per 5 observations: the new data frame with columns sex, age, trial and time. The trial variable takes values 1, 2, 3, 4, indicating the trial number. The time gives the time measured in the given trial.
+By looking at summaries(table 1) and exploratory plots(figure 1), we find the plot between each trials are highly correlated with each other, we decide to come all trails as one variable by using long form. The long form is one row per observation, the new data frame with columns sex, age, trial and time. The trial variable takes values 1, 2, 3, 4, indicating the trial number. The time gives the time measured in the given trial.
 
 \begin{figure}[H]
 
@@ -61,7 +62,6 @@ points(time[sex == "F"] ~ age[sex == "F"], data = tracking, pch = 16, col = 2)
 abline(v = 20, lty = 2)
 legend("topright", col = c(2, 1), pch = 16, legend = c("female", "male"))
 @
-\subcaption{Q-Q plot for value of time}
 \end{minipage}
 \hfill%
 \begin{minipage}[b]{.5\linewidth}
@@ -73,17 +73,12 @@ points(time[shape == "Circle"] ~ age[shape == "Circle"], data = tracking, pch = 
 abline(v = 20, lty = 2)
 legend("topright", col = c(2, 1), pch = 16, legend = c("Circle", "Box"))
 @
-\subcaption{Q-Q plot for $\sqrt{time}$}
 \end{minipage}
-\caption{Q-Q plot for checking time variable}
-\end{figure}
-
-\begin{figure}[H]
 \centering
   \caption{\textbf{Scatter plot between times and age:} \emph{Left: }{This plot is scatter plot for times and age, we add sex as a factor, which indicate by color, and the vertical line is at age 20. }\emph{Right: }{change the factor to shape.}}
 \end{figure}
 
-From figure 2, we can see there is a big gap between age, so we add a vertical line at age 20 on plot, it separates the plot into two parts. If we look at the left part, the contact time increases as age increases. For the right side, the contact time decreases as age decrease. From the left plot, it indicates more male are older than 20, and male's performance has higher variation then female. From the right plot, at same age, Box gives higher performance than circle We will consider age, and shape are potential variables in our model.
+From figure 2, we can see there is a big gap between age, so we add a vertical line at age 20 on plot, it separates the plot into two parts. If we look at the left part, the contact time increases as age increases. For the right side, the contact time decreases as age increases. From the left plot, it indicates for male who are older than 20, they have higher variation then female. From the right plot, at same age, Box gives higher performance than circle. We will consider age, and shape are potential variables in our model.
 
 \begin{figure}[H]
 \centering
@@ -106,7 +101,7 @@ boxplot(time ~ shape, data = tracking, ylim = c(0, 12), las = 1,xlab = "Shape",y
   \caption{\textbf{Box plot of all categorical variables respect to time: } \emph{Top:}{ On the y aixs 1,2,3,4 represent the different trials, M, F represent male and female, Box, Circle represent different shapes. For example, the top label on the y aixs, 4.M.Circle, means the contact time for a male who did his fourth trail on a circle shape. }\emph{Middle left:}{ Box plot of Time and Trails. }\emph{Middle right:}{ Box plot of Time and Sex. }\emph{Bottom:}{ Box plot of Shapes.}}
 \end{figure}
 
-We first draw the top plot in figure 3, put all categorical variables together, we can see the mean values and the variances for different groups are different, so some variables affect the time, in order to make the affect easier to see, we draw the categorical variables with time separately, which are middle left, middle right and bottom plots in figure 3. From Middle left plot, it gives us an increasing trend across trails, the more trails subjects did, the better result they got. From the middle right, we can see that male has a better results than female, but the male has a high variance compares to female. But from bottom plot, means of two groups don't look significantly different, but affects the variance, we can see the Circle has bigger variance than Box. 
+We first draw the top plot in figure 3, put all categorical variables together, we can see the mean values and the variances for different groups are different, so some variables affect the time. In order to make the affect easier to see, we draw categorical variables with time separately, which are middle left, middle right and bottom plots in figure 3. From middle left plot, it gives us an increasing trend across trails, the more trails subjects did, the better result they got. From the middle right, we can see that male has a better results than female, but the male has a high variance compares to female. From bottom plot, mean value of two groups don't look significantly different, but we can see the Circle has bigger variance than Box. 
 
 
 \subsection{Modelling data}
@@ -119,7 +114,7 @@ model2 = lm(formula = time ~ sex + age + trial + shape + sex:age + age:trial + a
            data = tracking)
 @
 
-Based on what we get from Data exploration part, we decide our initial model to be "time ~ sex + age + trial", and names it as model1 we put it into "stepAIC" function, the stepAIC returns us "time ~ sex + age + trial + shape + age:shape + sex:age + age:trial" as the best model with AIC equal to 492.87. Now we update our model to the model that stepAIC gives us, and names it as model2.
+Based on what we get from Data exploration part, we decide our initial model to be "time ~ sex + age + trial", and names it as model1. We put it into "stepAIC" function, the stepAIC returns us "time ~ sex + age + trial + shape + age:shape + sex:age + age:trial" as the best model with AIC equal to 492.87. Now we update our model to the model that stepAIC gives us, and names it as model2.
 
 <<echo=FALSE>>=
 # summary(model2)
@@ -143,7 +138,7 @@ Based on what we get from Data exploration part, we decide our initial model to 
 \end{tabular}
 \end{table}
 
-R does F-test for the model, the null hypothesis for F-test is the model is not significant, the alternative is the model is significant.R gives p-value of F-test equal to 2.210-16, which is less than 0.01, so the model is significant at 0.01 alpha level. But if we look at the T-test for the parameters, which tests if the parameters are significant, there are three variables(sex, age, trails) are not significant at 0.01 significant level. But only if the model doesn't have interaction parts, the interpretation of the hypothesis test of single  variables do not change, since we have interaction between age and sex, age and trial, age and shape, so the hypothesis tests for sex, age, and trial might not be useful. So we keep this model as our best model for right now.
+From table we look at the T-test for the parameters, which tests if the parameters are significant, there are three variables(sex, age, trails) are not significant at 0.01 significant level. But only if the model doesn't have interaction parts, the interpretation of the hypothesis test of single  variables do not change, since we have interaction between age and sex, age and trial, age and shape, so the hypothesis tests for sex, age, and trial might not be useful. So we keep this model as our best model for right now.
 
 \begin{figure}[H]
 \centering
