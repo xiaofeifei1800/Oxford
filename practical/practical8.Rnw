@@ -1,0 +1,22 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{float}
+\restylefloat{table}
+\usepackage{subcaption}
+\renewcommand\thesubfigure{\roman{subfigure}}
+\usepackage[a4paper, total={6in, 8in}]{geometry}
+
+
+\title{Generalised Linear Models, Assessed Practical}
+\author{Practical No. P049}
+\begin{document}
+
+\maketitle
+\newpage
+\section{Summary}
+
+\section{Induction}
+Motor learning and Hand-eye coordination are affected by multiple factors,the United States Nava Postgraduate School invited 108 people to their lab for discovering what affects Motor learning and hand-eye coordination.The experiment used a rotating disk with a 3/4-inch target spot, the subject needs to contact the target spot with a metal wand, and the total contact time during the 15 seconds was recorded, as well as number of trails, shape of tracker, age and sex of subject were recorded. We are interested in investigating the association between contact time with age, sex and shape. In this paper we apply normal linear model on those variables to find a proper model that can explain the relation between each variables with contact time, and how these variables explain the way subjects improve across trials. Before we fit the models, we explore and analysis data, which helps us to understand the relation between variables. Based AIC(Akaike information criterion) and the information we find in data, we select the best model from all the possible models. Finally we explain what find we in the model, and answer the two question that We give previous.
+
+
+\end{document}
