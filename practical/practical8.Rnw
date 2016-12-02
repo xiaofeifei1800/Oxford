@@ -16,7 +16,15 @@
 \section{Summary}
 
 \section{Induction}
-Motor learning and Hand-eye coordination are affected by multiple factors,the United States Nava Postgraduate School invited 108 people to their lab for discovering what affects Motor learning and hand-eye coordination.The experiment used a rotating disk with a 3/4-inch target spot, the subject needs to contact the target spot with a metal wand, and the total contact time during the 15 seconds was recorded, as well as number of trails, shape of tracker, age and sex of subject were recorded. We are interested in investigating the association between contact time with age, sex and shape. In this paper we apply normal linear model on those variables to find a proper model that can explain the relation between each variables with contact time, and how these variables explain the way subjects improve across trials. Before we fit the models, we explore and analysis data, which helps us to understand the relation between variables. Based AIC(Akaike information criterion) and the information we find in data, we select the best model from all the possible models. Finally we explain what find we in the model, and answer the two question that We give previous.
+
+A new treatment for lung cancer which is being tested in rats. In the experiment, 24 batches of 25 rats are tested at six different dose levels. Rats are splited into males and females. New treatment was in addition to standard therapy or without standard therapy. Recorded Number of rats who died whilst undergoing treatment as response variable. The explanatory variables are dose, sex and standard. In this paper we apply generalised linear model on those variables to find a proper model that can explain the relation between each variables with mortality. Before we fit the models, we explore and analysis data, which helps us to understand the relation between variables. Based AIC(Akaike information criterion), deviance test and the information we find in data, we select the best model from all the possible models. Finally we explain what find we in the model, 
+
+\section{Methods}
+catter plots are used to give a basic exploration of the contact time with other variables. Generalised linear models are the model that we used to fit our data, we consider a logistic regression. Forward stepwise based on AIC is used to select the best model based on minimizing AIC score, we use this method to automatic select proper model for us, but we still need human judgement for the results that stepwise gives us. 
+
+divance test, goodness of fit
+
+Diagnostic plots are used to check the data follow the assumptions and outliers analysis. T test and F test are used to check the significance of models and parameters.
 
 
 \end{document}
