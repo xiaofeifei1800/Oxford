@@ -14,10 +14,8 @@
 
 \maketitle
 \newpage
-\section{Summary}
-
 \section{Induction}
-Motor learning and Hand-eye coordination are affected by multiple factors,the United States Nava Postgraduate School invited 108 people to their lab for discovering what affects Motor learning and hand-eye coordination.The experiment used a rotating disk with a 3/4-inch target spot, the subject needs to contact the target spot with a metal wand, and the total contact time during the 15 seconds was recorded, as well as number of trails, shape of tracker, age and sex of subject were recorded. We are interested in investigating the association between contact time with age, sex and shape. In this paper we apply normal linear model on those variables to find a proper model that can explain the relation between each variables with contact time, and how these variables explain the way subjects improve across trials. Before we fit the models, we explore and analysis data, which helps us to understand the relation between variables. Based AIC(Akaike information criterion) and the information we find in data, we select the best model from all the possible models. Finally we explain what find we in the model, and answer the two question that We give previous.
+Motor learning and Hand-eye coordination are affected by multiple factors, the United States Nava Postgraduate School invited 108 people to their lab for discovering what affects motor learning and hand-eye coordination.The experiment used a rotating disk with a 3/4-inch target spot, the subject needs to contact the target spot with a metal wand, and the total contact time during the 15 seconds was recorded, and subjects' information. We are interested in investigating the association between contact time with other variables. In this paper we apply normal linear model on those variables to explain the relation between each variables with contact time, and how these variables explain the way subjects improve across trials. Before we fit the models, we explore and analysis data, which helps us to understand the relation between variables. Based AIC(Akaike information criterion) and the information we find in data, we select the best model from all the possible models. Finally we explain what find we in the model, and answer the two questions that We give.
 
 \section{Methods}
 Firstly, Box plots, histograms and scatter plots are used to give a basic exploration of the contact time with other variables. Linear models are the model that we used to fit our data, we only consider normal linear models with fixed effects. Forward stepwise based on AIC is used to select the best model based on minimizing AIC score, we use this method to automatic select proper model for us, but we still need human judgement for the results that stepwise gives us. Boxcox is used to find if the data need transformation and find a simple transformation that leads to normality. Diagnostic plots are used to check the data follow the assumptions and outliers analysis. T test and F test are used to check the significance of models and parameters.
@@ -25,8 +23,9 @@ Firstly, Box plots, histograms and scatter plots are used to give a basic explor
 \section{Results}
 \subsection{Data exploration}
 \begin{figure}[H]
-<<echo=FALSE>>=
-tracking = read.table("P:/R Data/tracking.txt", header = T)
+\centering
+<<echo=FALSE, fig = TRUE>>=
+tracking = read.table("I:/Oxford/R Data/tracking.txt", header = T)
 plot(tracking)
 @
   \caption{\textbf{Pairwies plots: }{plot pairwise combinations of variables in scatterplots.}}
@@ -47,14 +46,14 @@ Trial1 & 1.00 & 0.91 & 0.90 & 0.89 \\
 \end{tabular}
 \end{table}
 
-By looking at summaries(table 1) and exploratory plots(figure 1), we find the plot between each trials are highly correlated with each other, we decide to come all trails as one variable by using long form. The long form is one row per observation, the new data frame with columns sex, age, trial and time. The trial variable takes values 1, 2, 3, 4, indicating the trial number. The time gives the time measured in the given trial.
+By looking at summaries(table 1) and exploratory plots(figure 1), we find trials are highly correlated with each other, we decide to come all trails as one variable by using long form. The long form is one row per observation, the new data frame with columns sex, age, trial and time. The trial variable takes values 1, 2, 3, 4, indicating the trial number. The time gives the time measured in the given trial.
 
 \begin{figure}[H]
 
 \begin{minipage}[b]{.5\linewidth}
 \centering%
-<<echo=FALSE>>=
-tracking = read.table("P:/R Data/tracklong.txt", header = T)
+<<echo=FALSE, fig = TRUE>>=
+tracking = read.table("I:/Oxford/R Data/tracklong.txt", header = T)
 
 plot(time[sex == "M"] ~ age[sex == "M"], data = tracking, pch = 16,
      ylab = "Time measured in trial (seconds)", xlab = "Age (years)")
@@ -66,7 +65,7 @@ legend("topright", col = c(2, 1), pch = 16, legend = c("female", "male"))
 \hfill%
 \begin{minipage}[b]{.5\linewidth}
 \centering%
-<<echo=FALSE>>=
+<<echo=FALSE, fig = TRUE>>=
 plot(time[shape == "Box"] ~ age[shape == "Box"], data = tracking, pch = 16,
      ylab = "Time measured in trial (seconds)", xlab = "Age (years)")
 points(time[shape == "Circle"] ~ age[shape == "Circle"], data = tracking, pch = 16, col = 2)
@@ -75,14 +74,14 @@ legend("topright", col = c(2, 1), pch = 16, legend = c("Circle", "Box"))
 @
 \end{minipage}
 \centering
-  \caption{\textbf{Scatter plot between times and age:} \emph{Left: }{This plot is scatter plot for times and age, we add sex as a factor, which indicate by color, and the vertical line is at age 20. }\emph{Right: }{change the factor to shape.}}
+  \caption{\textbf{Scatter plot between times and age:} \emph{Top: }{This plot is scatter plot for times and age, we add sex as a factor, which indicate by color, and the vertical line is at age 20. }\emph{Bottom: }{change the sex to shape.}}
 \end{figure}
 
-From figure 2, we can see there is a big gap between age, so we add a vertical line at age 20 on plot, it separates the plot into two parts. If we look at the left part, the contact time increases as age increases. For the right side, the contact time decreases as age increases. From the left plot, it indicates for male who are older than 20, they have higher variation then female. From the right plot, at same age, Box gives higher performance than circle. We will consider age, and shape are potential variables in our model.
+From figure 2, we can see there is a big gap between age, so we add a vertical line at age 20 on plot. If we look at the left part of the line, the contact time increases as age increases. For the right side, the contact time decreases as age increases. From the top plot, it indicates for male who are older than 20, they have higher variation then female. From the bottom plot, at same age, Box gives higher performance than circle. We will consider age, and shape are potential variables in our model.
 
 \begin{figure}[H]
 \centering
-<<echo=FALSE, out.width='4in'>>=
+<<echo=FALSE, out.width='4in', fig = TRUE>>=
 par(mar = c(5, 6, 3, 3) + 0.1)
 boxplot(time ~ trial + sex + shape, data = tracking,
         horizontal = TRUE, xlim = c(0, 17), ylim = c(0, 12), las = 1,
@@ -92,7 +91,7 @@ boxplot(time ~ trial + sex + shape, data = tracking,
 
 \begin{figure}[H]
 \centering
-<<echo=FALSE, out.width='4in'>>=
+<<echo=FALSE, out.width='4in', fig = TRUE>>=
 par(mfrow=c(2,2))
 boxplot(time ~ trial, data = tracking, ylim = c(0, 12), las = 1,xlab = "Trials", ylab = "Time (seconds)")
 boxplot(time ~ sex, data = tracking, ylim = c(0, 12), las = 1,xlab = "Sex(F: Female, M: Male)",ylab = "Time (seconds)")
@@ -101,7 +100,7 @@ boxplot(time ~ shape, data = tracking, ylim = c(0, 12), las = 1,xlab = "Shape",y
   \caption{\textbf{Box plot of all categorical variables respect to time: } \emph{Top:}{ On the y aixs 1,2,3,4 represent the different trials, M, F represent male and female, Box, Circle represent different shapes. For example, the top label on the y aixs, 4.M.Circle, means the contact time for a male who did his fourth trail on a circle shape. }\emph{Middle left:}{ Box plot of Time and Trails. }\emph{Middle right:}{ Box plot of Time and Sex. }\emph{Bottom:}{ Box plot of Shapes.}}
 \end{figure}
 
-We first draw the top plot in figure 3, put all categorical variables together, we can see the mean values and the variances for different groups are different, so some variables affect the time. In order to make the affect easier to see, we draw categorical variables with time separately, which are middle left, middle right and bottom plots in figure 3. From middle left plot, it gives us an increasing trend across trails, the more trails subjects did, the better result they got. From the middle right, we can see that male has a better results than female, but the male has a high variance compares to female. From bottom plot, mean value of two groups don't look significantly different, but we can see the Circle has bigger variance than Box. 
+We first draw the top plot in figure 3, put all categorical variables together. We can see the mean values and the variances for different groups are different, so some variables affect the time. In order to make the affect easier to see, we draw categorical variables with time separately. From middle left plot, it gives us an increasing trend across trails. From the middle right, we can see that male has a better results than female, but the male has a high variance compares to female. From bottom plot, the mean value of two groups don't look significantly different, but we can see the Circle has bigger variance than Box. 
 
 
 \subsection{Modelling data}
@@ -114,7 +113,7 @@ model2 = lm(formula = time ~ sex + age + trial + shape + sex:age + age:trial + a
            data = tracking)
 @
 
-Based on what we get from Data exploration part, we decide our initial model to be "time ~ sex + age + trial", and names it as model1. We put it into "stepAIC" function, the stepAIC returns us "time ~ sex + age + trial + shape + age:shape + sex:age + age:trial" as the best model with AIC equal to 492.87. Now we update our model to the model that stepAIC gives us, and names it as model2.
+Based on what we get from Data exploration part, we decide our initial model to be "time ~ sex + age + trial", and names it as model1. We put it into "stepAIC" function, the stepAIC(all the stepAIC output are in A.2) returns us "time ~ sex + age + trial + shape + age:shape + sex:age + age:trial" as the best model with AIC equal to 492.87. Now we update our model to the model that stepAIC gives us, and names it as model2.
 
 <<echo=FALSE>>=
 # summary(model2)
@@ -138,11 +137,11 @@ Based on what we get from Data exploration part, we decide our initial model to 
 \end{tabular}
 \end{table}
 
-From table we look at the T-test for the parameters, which tests if the parameters are significant, there are three variables(sex, age, trails) are not significant at 0.01 significant level. But only if the model doesn't have interaction parts, the interpretation of the hypothesis test of single  variables do not change, since we have interaction between age and sex, age and trial, age and shape, so the hypothesis tests for sex, age, and trial might not be useful. So we keep this model as our best model for right now.
+From table 2, we look at the T-test for the parameters, which tests if the parameters are significant. There are three variables(sex, age, trails) are not significant at 0.01 significant level. But only if the model doesn't have interaction parts, the interpretation of the hypothesis test of single  variables do not change. Since we have interaction between age and sex, age and trial, age and shape are significant at 0.05 significant level, so the hypothesis tests for sex, age, and trial might not be useful. So we keep this model as our best model for right now.
 
 \begin{figure}[H]
 \centering
-<<echo=FALSE, out.width='4in'>>=
+<<echo=FALSE, out.width='1in', fig = TRUE>>=
 par(mfrow=c(1,1))
 boxcox(model2,lambda = seq(0, 1, length = 10))
 @
@@ -156,7 +155,7 @@ We look at the Q-Q plot for time before and after transformation
 
 \begin{minipage}[b]{.5\linewidth}
 \centering%
-<<echo=FALSE>>=
+<<echo=FALSE, fig = TRUE>>=
 qqnorm(tracking$time)
 lines(x=c(-3,3), y = c(0,12))
 @
@@ -165,7 +164,7 @@ lines(x=c(-3,3), y = c(0,12))
 \hfill%
 \begin{minipage}[b]{.5\linewidth}
 \centering%
-<<echo=FALSE>>=
+<<echo=FALSE, fig = TRUE>>=
 qqnorm(sqrt(tracking$time))
 lines(x=c(-3,3), y = c(0,3.5))
 @
@@ -174,20 +173,20 @@ lines(x=c(-3,3), y = c(0,3.5))
 \caption{Q-Q plot for checking time variable}
 \end{figure}
 
-In the Q-Q plot, the most of the points are on the gray line. We consider the errors to follow a normal distribution. We can see the right plot has more data on the gray line than left plot, we can see that after the transformation, the time varible is more normal.
+In the Q-Q plot, if the most of the points are on the gray line, we consider the errors to follow a normal distribution. We can see the right plot has more data on the gray line than left plot, we can see that after the transformation, the time varible is more normal distributed.
 
 <<echo=FALSE>>=
 new_tracking = tracking
 new_tracking$time = (new_tracking$time)^(0.5)
 model2 = lm(formula = time ~ sex + age + trial + shape + sex:age + age:trial + age:shape, 
            data = new_tracking)
-stp = stepAIC(model2,
-              scope = list(upper = ~sex * age * trial * shape,lower = ~1))
+# stp = stepAIC(model2,
+#               scope = list(upper = ~sex * age * trial * shape,lower = ~1))
 
 model3 = lm(formula = time ~ sex + age + trial + shape + sex:age + age:shape,
            data = new_tracking)
 @
-After we do the boxcox variable transformation, we refit the data, and do the stepAIC again. This time, the stepAIC gives us"time ~ sex + age + trial + shape + sex:age + age:trial + age:shape + sex:shape" as the best model, so we update our model to this one and names it as model3. 
+After we do the boxcox variable transformation, we refit the model, and do the stepAIC(A.3) again. This time, the stepAIC gives us "time ~ sex + age + trial + shape + sex:age + age:trial + age:shape + sex:shape" as the best model, so we update our model to this one and names it as model3. 
 
 <<echo=FALSE>>=
 # summary(model3)
@@ -209,26 +208,27 @@ After we do the boxcox variable transformation, we refit the data, and do the st
    \caption{\textbf{Summary table of model3}}
 \end{tabular}
 \end{table}
+We look at the summaries(table 3) of our new model, \textbf{sexM} is not significant at 0.01 significant level. Since we have interaction between age and sex is significant at 0.05 significant level, so we keep this model as our best model for right now.
 
 \begin{figure}[H]
 \centering
-<<echo=FALSE>>=
+<<echo=FALSE, fig = TRUE>>=
 par(mfrow=c(2,2))
 plot(model3)
 @
   \caption{\textbf{Diagnostic plots: } \emph{Top right:}{ Residual plot. }\emph{Top left: }{ Q-Q plot. }\emph{Bottom left: }{ Standardised residual plot. }\emph{Bottom right: }{Leverage plot.}}
 \end{figure}
 
-The upper left plot shows the residuals versus the fitted values. If the variance is constant for data, all the points fall randomly on the two side of red horizontal line, but here, the more points have positive residuals when fitted values around 1.5 to 2.5, but we don't see any pattern in the plot, so we think data don't valid assumption of equal variance
-The upper right plot is a Q-Qnorm plot of the residuals. This plot evaluates the least-squares regression assumption that the errors are normally distributed. Here, the most of the points are on the gray line. We consider the errors to follow a normal distribution. 
-The lower left plot is a scale-location plot. The regression assumes homoscedasticity, that the variance in the residuals doesn't’t change as a function of x. If that assumption is correct, then the red line should be relatively flat, the red line is flat here. This shows that the errors are homoscedasticity.
-The lower right plot shows the standardized residuals against leverage. Leverage is a measure of how much each data point influences the regression. Here, we can see that R automatically marked the outliers, but they are still in the cook's distance, and also look at Q-Q plot, there are no points obviously far away from diagonal, so we don't treat them as outlier.
+For upper left plot, if the variance is constant for data, all the points fall randomly on the two side of red horizontal line. we have more points are positive when fitted values around 1.5 to 2.5, but we don't see any pattern in the plot, so we think data don't valid assumption of equal variance
+For upper right plot, this plot evaluates the least-squares regression assumption that the errors are normally distributed. Here, the most of the points are on the gray line. We consider the errors to follow a normal distribution. 
+The lower left plot checks regression homoscedasticity assumption, that the variance in the residuals doesn't change as a function of x. If that assumption is correct, then the red line should be relatively flat, the red line is flat here. This shows that the errors are homoscedasticity.
+For lower right plot, leverage is a measure of how much each data point influences the regression. Here, we can see that R automatically marked the outliers, but they are still in the cook's distance, and also look at Q-Q plot, there are no points obviously far away from diagonal, so we don't treat them as outlier.
 
 \subsection{Data transformation}
-As we find in Data exploration section, the age data has a gap around age 20, so we split the age into two groups that are greater than 20, and less than 20. We do a box plot to see if this factor will affect the time.
+As we find in Data exploration section, the age data has a gap around age 20, so we split the age into two groups. We do a box plot to see if this factor will affect the $\sqrt{time}$.
 \begin{figure}[H]
 \centering
-<<echo=FALSE, out.width='4in'>>=
+<<echo=FALSE, width=5, height=5, fig = TRUE>>=
 new_tracking$grp <- factor(ifelse(new_tracking$age < 20, "young", "old"),
                       levels = c("young", "old"))
 
@@ -236,30 +236,21 @@ plot(new_tracking$grp,new_tracking$time, ylab = "Time measured in trial (seconds
 @
   \caption{\textbf{Box plot:} {Boxcox plot of subject younger than 20 and others}}
 \end{figure}
-From the box plot, we can see that age group has a significant on time, the old group performs better than the young group. So we will consider to put this variable into our model
+From the box plot, we can see the old group performs better than the young group. So we will consider to put this variable into our model
 
+Another variable that we need consider to do transformation is \textbf{Trails}. The \textbf{Trails} can be treated either as numeric or category. If we treat \textbf{Trails} as numerical data, and fit it into model, we will get $\beta_{trails}\cdot Trails$ term. That means, if the subject does the experiment again, he/she will increase the contant time by $\beta_{trails}$. But we don't think that is true, because the more experiment that subject does, the less contact time that subject can improve. it is more proper we treat trails as a categorical. 
 
-<<echo=FALSE>>=
-# model3 = lm(formula = time ~ sex + age + trial + shape + grp + sex:age + age:shape,
-#            data = new_tracking)
-# stp = stepAIC(model3,
-#               scope = list(upper = ~sex * age * trial * shape * grp,lower = ~1))
-# model4 = lm(formula = time~ sex + age + trial + shape + grp + sex:age + age:shape + 
-#     age:grp + shape:grp + age:trial, data = new_tracking)
-@
-
-Another variable that we need consider to do transformation is \textbf{Trails}. The \textbf{Trails} can be treated either as numeric or category, we need to specify how the different types will affect our model. If we treat \textbf{Trails} as numerical data, then the different trails will be marked as 1,2,3,4. If we fit it into model, we will get $\beta_{trails}\cdot Trails$ term, and \textbf{Trials} can be 1 to 4. That means, if the subject does the experiment again, he/she will increase the contant time by $\beta_{trails}$. But we don't think that is true, because the more experiment that subject does, the less contact time that subject can improve. We believe if we treat trails as a categorical data is more proper in this case. we make trail as factor and add age factor into data. 
-
+we make trail as categorical and add age factor into data. 
 <<echo=FALSE>>=
 new_tracking$trial = factor(new_tracking$trial)
 model3 = lm(formula = time ~ sex + age + trial + shape + grp + sex:age + age:shape,
            data = new_tracking)
-stp = stepAIC(model3,
-              scope = list(upper = ~sex * age * trial * shape * grp,lower = ~1))
+# stp = stepAIC(model3,
+#               scope = list(upper = ~sex * age * trial * shape * grp,lower = ~1))
 model5 = lm(formula = time ~ sex + age + trial + shape + grp + sex:age + age:shape +
     age:grp + shape:grp, data = new_tracking)
 @
-we use new data to do StepAIC again, it gives "time ~ sex + age + trial + shape + grp + sex:age + age:shape + age:grp + shape:grp" as best model. 
+we use new data to do StepAIC(A.4) again, it gives "time ~ sex + age + trial + shape + grp + sex:age + age:shape + age:grp + shape:grp" as best model. 
 
 <<echo=FALSE>>=
 # summary(model5)
@@ -290,25 +281,151 @@ we use new data to do StepAIC again, it gives "time ~ sex + age + trial + shape 
 The Table 4 shows us the p-value of all variables are less than 0.05 except intercept, we can say that all the variables are significant at 0.05 significant level. 
 
 \subsection{Interpret model}
-Now we are going through each variable in the model5 to explore the relation between time and those variables. The first term is \textbf{sexM} = -0.1422, which means if the subject is male, he will get 0.1422 $\sqrt{time}$ less than female, but from the box plot of sex respect to time, we see that male overall performances are better than female, so we look our model5 again, we notice there is an interaction term \textbf{sexM:age}, which is 0.0146. It means if the subject is male, the older he is, the better he could do. If we look at the figure 2 left plot, and the subjects under 20 years old, the female has same performance as male, even a little bit better than male. If we combine the \textbf{sexM} and \textbf{sexM:age} together, we will get a conclusion for sex variable, the older male can do better than female. 
+Now we are going through each variable in the model5 to explore the relation between them and $\sqrt{time}$. The first term is \textbf{sexM} = -0.1422, which means if the subject is male, he will get 0.1422 $\sqrt{time}$ less than female, but from figure 3 middle right plot, we see that male does better than female, so we look our model5 again. We notice there is an interaction term \textbf{sexM:age}, which is 0.0146. It means if the subject is male, the older he is, the better he could do. If we look at the figure 2 top plot, for subjects over 20 years old, the male can do better than female. If we combine the \textbf{sexM} and \textbf{sexM:age} together, we will get a conclusion for sex variable, the older male can do better than older female. 
 
-The next term is age, from the experience of interpreting sex variable, this time we interpreting terms that involve age, instead of interpreting age term only. In the model we have \textbf{age}=0.1201,\textbf{sexM:age}=0.0146,\textbf{age:shapeCircle}=0.0516,\textbf{age:grpold}=-0.1743. The \textbf{age} term is positive, which means the older people can do better than younger people, if we look at the Figure 2, we can see that is not true, Figure 2 shows after around 40 years old, people start performing worse, but the textbf{age:grpold} is negative, which soluve this problem. The difference between \textbf{sexM:age} and \textbf{age:grpold} is 0.1201-0.1743=-0.0542, it tells us the for the subjects in older group, the order they are, the worst they can do in the experiments. The relation between age and time is the adult can do better than young and old people. For \textbf{sexM:age}, we have already interpreted it, for \textbf{age:shapeCircle}, we will talk about it with \textbf{shapeCircle} later. 
+The next term is age, in the model we have \textbf{age}=0.1201,\textbf{sexM:age}=0.0146,\textbf{age:shapeCircle}=0.0516,\textbf{age:grpold}=-0.1743. The \textbf{age} term is positive, which means the older people can do better than younger people, if we look at the Figure 2, we can see that is not true. Figure 2 shows after 40 years old, people start performing worse, so the \textbf{age:grpold} is negative, which soluve this problem. The difference between \textbf{sexM:age} and \textbf{age:grpold} is 0.1201-0.1743=-0.0542, it tells us the for the subjects in older group, the order they are, the worst they can do in the experiments. The relation between age and time is that adult can do better than young and old people. For \textbf{sexM:age}, we have already interpreted it, for \textbf{age:shapeCircle}, we will talk about it with \textbf{shapeCircle} later. 
 
-Next we will talk about trail variable, we have \textbf{trial2}=0.1574, \textbf{trial3}=0.2312 and \textbf{trial4}=0.2913. If trail is 1, trail won't contribute anything to contact time, which means the model set trail1 as base line, if the trail is 2, it will increase $\sqrt{time}$ for 0.1574, if the trail is 3, it will increase $\sqrt{time}$ for 0.2312, 0.2913 for trail4. From trail1 to trail2, the $\sqrt{time}$ increases 0.1574, but from trail2 to trail3, the $\sqrt{time}$ increases 0.2312-0.1574=0.0738, which is less than the difference between trail1 and trail2. For trail3 to trail4, the difference is 0.2913-0.2312 = 0.0601, it is also less than the difference between trail2 and trail3. It perfect match what we talked about at section Data transformation, which is "the more experiment that subject does, the less contact time that subject can improve".
+For trail variable, we have \textbf{trial2}=0.1574, \textbf{trial3}=0.2312, \textbf{trial4}=0.2913, and trail1 as base line. If the trail is 2, it will increase $\sqrt{time}$ for 0.1574, 0.2312 for trail3, 0.2913 for trail4. From trail1 to trail2, the $\sqrt{time}$ increases 0.1574, but from trail2 to trail3, it increases 0.2312-0.1574=0.0738, which is less than the difference between trail1 and trail2. For trail3 to trail4, the difference is 0.2913-0.2312 = 0.0601, it is also less than the difference between trail2 and trail3. It perfect match what we talked about at section Data transformation, which is "the more experiment that subject does, the less contact time that subject can improve".
 
-The last variable is shape. The \textbf{shapeCircle}=-0.2489, \textbf{age:shapeCircle}=0.0516, and \textbf{shapeCircle:grpold}=-0.9847. From Figure 2 right plot, we can see that subjucts have better performance on Box shape, because the there are more red dots have higher contact time, so it makes sense that \textbf{shapeCircle} is negative, which means circle shape will reduce subject's performance. If we look at the right plot in figure 2 again, subjects under 20 years old, the contact time in circle shape increases as age increases, so we have term \textbf{age:shapeCircle} is positive. But this relation is not hold for subject who is older than 20, the \textbf{shapeCircle:grpold} term capture this situation, \textbf{shapeCircle:grpold} is negative value, it cancels some increasing trend from \textbf{age:shapeCircle} term. we can conclude that for overall, subject performs better on box shape than circle shape.
-
+The last variable is shape. The \textbf{shapeCircle}=-0.2489, \textbf{age:shapeCircle}=0.0516, and \textbf{shapeCircle:grpold}=-0.9847. From the experiment we know that circle shape has constant speed, and box tracker has varying speeds, making the task potentially more difficult, so we expect people will do better on circle shape. If we look at the parameters for shape, \textbf{shapeCircle}/\textbf{age:shapeCircle}$\approx$5, which means for people older than 5, they can do better on circle shape than box shape. For the \textbf{shapeCircle:grpold} term, it is negative, means for subjects who are older than 20, they can increase their $\sqrt{time}$ as much as people younger than 20. 
 
 \section{Conclusions}
-In this report, we first do some numerical summaries and some exploratory plots, which give us a basic idea of the data and the relation between each varibles. We treat the trails as categorical variable and add one variables called "group" which split subject into young and old group by their age, then We use normal linear model to find the relationship between contact time and other variables on the data that collected by United States Naval Postgraduate School. we showed that age, sex, trails and shape all affect the contact time, and how they affect contact time, such as adult can do better than young and old people. The final model we get matches what we find in data exploration section. 
+In this report, we first do some numerical summaries and some exploratory plots, which give us a basic idea of the data and the relation between each varibles. We treat the trails as categorical variable and split subject into young and old group by their age, transform contact time to square root. Through the linear model, we show that age, sex, trails and shape all affect the contact time, and how they affect contact time, such as adult can do better than young and old people. The final model matches what we find in data exploration section. 
 
 \section{Discussion}
-In the future work, instead of adding one more variable to specify young and old people, we can separately do the normal linear regression for young and old people, that may give us a better result. Also from Figure 2, we notice the time and age are not linear related, so we can apply quartic model on this data, such as add $age^2$ term into our model.
+In the future work, instead of adding one more variable to specify young and old people, we can do the normal linear regression separately for young and old people, that may give us a better result. Also from Figure 2, we notice the time and age are not linear related, so we can apply quartic model on this data, such as add $age^2$ term into our model.
 
 \newpage
 \appendix
 \section{Appendix}
 \subsection{R code}
+<<eval = FALSE>>=
+# load data
+tracking = read.table("I:/Oxford/R Data/tracking.txt", header = T)
 
+# plot pairwise plot
+plot(tracking)
 
+# load long form data
+tracking = read.table("I:/Oxford/R Data/tracklong.txt", header = T)
+
+# plot time vs other variables
+plot(time[sex == "M"] ~ age[sex == "M"], data = tracking, pch = 16,
+     ylab = "Time measured in trial (seconds)", xlab = "Age (years)")
+     
+points(time[sex == "F"] ~ age[sex == "F"], data = tracking, pch = 16, col = 2)
+
+abline(v = 20, lty = 2)
+
+legend("topright", col = c(2, 1), pch = 16, legend = c("female", "male"))
+
+plot(time[shape == "Box"] ~ age[shape == "Box"], data = tracking, pch = 16,
+     ylab = "Time measured in trial (seconds)", xlab = "Age (years)")
+     
+points(time[shape == "Circle"] ~ age[shape == "Circle"], data = tracking, pch = 16, col = 2)
+
+abline(v = 20, lty = 2)
+
+legend("topright", col = c(2, 1), pch = 16, legend = c("Circle", "Box"))
+
+par(mar = c(5, 6, 3, 3) + 0.1)
+
+boxplot(time ~ trial + sex + shape, data = tracking,
+        horizontal = TRUE, xlim = c(0, 17), ylim = c(0, 12), las = 1,
+        xlab = "Value of time")
+
+par(mfrow=c(2,2))
+
+boxplot(time ~ trial, data = tracking, ylim = c(0, 12), las = 1,xlab = "Trials", ylab = "Time (seconds)")
+
+boxplot(time ~ sex, data = tracking, ylim = c(0, 12), las = 1,xlab = "Sex(F: Female, M: Male)",ylab = "Time (seconds)")
+
+boxplot(time ~ shape, data = tracking, ylim = c(0, 12), las = 1,xlab = "Shape",ylab = "Time (seconds)")
+
+library(MASS)
+
+# fit the inital model
+model1 = lm(time ~ sex + age + trial, data = tracking)
+
+# do the stepwise
+stp = stepAIC(model1, 
+               scope = list(upper = ~sex * age * trial * shape,lower = ~1))
+
+# get the best model from stepwise           
+model2 = lm(formula = time ~ sex + age + trial + shape + sex:age + age:trial + age:shape, 
+           data = tracking)
+           
+par(mfrow=c(1,1))
+
+# plot boxcox
+boxcox(model2,lambda = seq(0, 1, length = 10))
+
+# look at normality of time and square root of time
+qqnorm(tracking[,time])
+
+lines(x=c(-3,3), y = c(0,12))
+
+qqnorm(sqrt(tracking[,time]))
+
+lines(x=c(-3,3), y = c(0,3.5))
+
+# transfer the time to square root
+new_tracking = tracking
+
+new_tracking[,time] = (new_tracking[,time])^(0.5)
+
+# fit the model again and do the stepwise
+model2 = lm(formula = time ~ sex + age + trial + shape + sex:age + age:trial + age:shape, 
+           data = new_tracking)
+           
+stp = stepAIC(model2,
+               scope = list(upper = ~sex * age * trial * shape,lower = ~1))
+
+model3 = lm(formula = time ~ sex + age + trial + shape + sex:age + age:shape,
+           data = new_tracking)
+           
+summary(model3)
+
+par(mfrow=c(2,2))
+
+# look at the Diagnostic plots for model
+plot(model3)
+
+# split age to two groups
+new_tracking[,grp] <- factor(ifelse(new_tracking[,age] < 20, "young", "old"),
+                      levels = c("young", "old"))
+
+plot(new_tracking[,grp],new_tracking[,time], ylab = "Time measured in trial (seconds)", xlab = "Age group")
+
+# change trail to factor
+new_tracking[,trial] = factor(new_tracking[,trial])
+
+# refit the model and do the stepwise
+model3 = lm(formula = time ~ sex + age + trial + shape + grp + sex:age + age:shape,
+           data = new_tracking)
+           
+stp = stepAIC(model3,
+              scope = list(upper = ~sex * age * trial * shape * grp,lower = ~1))
+              
+model5 = lm(formula = time ~ sex + age + trial + shape + grp + sex:age + age:shape +
+    age:grp + shape:grp, data = new_tracking)
+
+summary(model5)
+@
+
+\subsection{StepAIC output model1}
+<<echo=FALSE>>=
+stp = stepAIC(model1, 
+               scope = list(upper = ~sex * age * trial * shape,lower = ~1))
+@
+\subsection{StepAIC output model2}
+<<echo=FALSE>>=
+stp = stepAIC(model2,
+               scope = list(upper = ~sex * age * trial * shape,lower = ~1))
+@
+\subsection{StepAIC output model3}
+<<echo=FALSE>>=
+stp = stepAIC(model3,
+            scope = list(upper = ~sex * age * trial * shape * grp,lower = ~1))
+@
 \end{document}
