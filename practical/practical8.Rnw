@@ -16,7 +16,147 @@
 \section{Summary}
 
 \section{Induction}
-Motor learning and Hand-eye coordination are affected by multiple factors,the United States Nava Postgraduate School invited 108 people to their lab for discovering what affects Motor learning and hand-eye coordination.The experiment used a rotating disk with a 3/4-inch target spot, the subject needs to contact the target spot with a metal wand, and the total contact time during the 15 seconds was recorded, as well as number of trails, shape of tracker, age and sex of subject were recorded. We are interested in investigating the association between contact time with age, sex and shape. In this paper we apply normal linear model on those variables to find a proper model that can explain the relation between each variables with contact time, and how these variables explain the way subjects improve across trials. Before we fit the models, we explore and analysis data, which helps us to understand the relation between variables. Based AIC(Akaike information criterion) and the information we find in data, we select the best model from all the possible models. Finally we explain what find we in the model, and answer the two question that We give previous.
+
+A new treatment for lung cancer which is being tested in rats. The experiment has 24 batches of 25 rats tested at six different dose levels. Rats were splited into males and females. The new treatement was in addition to standard therapy or without standard therapy. The number of rats who died whilst undergoing treatement was recorded. The reponse variable in this dataset is numdead, the exploanatory variables are dose, sex, standard.
+
+In this paper we apply generalised linear model on those variables to find a proper model that can explain the relation between each variables with number of dead rats. Before we fit the models, we explore and analysis data, which helps us to understand the relation between reponse varible and exploanatory variables. Based AIC(Akaike information criterion), diviance test and the information we find in data, we select the best model from all the possible models. We explain what find we in the model, give the goodness of fit.
+
+\section{Methods}
+Scatter plots are used to give a basic exploration of the numdead with other variables. Logistic regression are the model that we used to fit our data. The Logistic regression equantion is: 
+\begin{equation}
+logit(p_i) = \ln(\frac{p_i}{1-p_i}) = \beta _0+\beta _1x_{1,i}+\cdots +\beta _{m}x_{m,i}
+\end{equation}
+$i = 1,\cdots,n$(number of observation), $m = 1,\cdots,p$(number of exploanatory variables). Forward stepwise based on AIC is used to select the best model based on minimizing AIC score, we use this method to automatic select proper model for us. Deviance test is also used for model selection by us. The deviance equation is:
+\begin{equation}
+D(y) = -2 \Big( \log \big( p(y\mid\hat \theta_0)\big)-\log \big(p(y\mid\hat \theta_s)\big)\Big) \sim\chi ^{2} _{(n-p)}
+\end{equation}
+Based on AIC and deviance test, we choose our final model. After that Goodness of fit methods are used to assess the quality of out final model.
+
+\section{Results}
+\subsection{Data exploration}
+\begin{figure}[H]
+\centering
+<<echo=FALSE, fig = TRUE, out.width='3in'>>=
+rats = read.csv("P:/R Data/rats.csv", header = T)
+rats$dead_rate = rats$numdead/25
+  
+attach(rats)
+
+par(mar=c(5,5,1,1))
+plot(rats[rats$sex=='M'&rats$standard==1,"dose"],rats[rats$sex=='M'&rats$standard==1,"dead_rate"],pch=1,col='blue',xlab='Dose level',ylab='mortality', ylim=c(0,1), cex.lab=1.5)
+points(rats[rats$sex=='M'&rats$standard==0,"dose"],rats[rats$sex=='M'&rats$standard==0,"dead_rate"],pch=5,col='blue')
+points(rats[rats$sex=='F'&rats$standard==1,"dose"],rats[rats$sex=='F'&rats$standard==1,"dead_rate"],pch=20,col='red')
+points(rats[rats$sex=='F'&rats$standard==0,"dose"],rats[rats$sex=='F'&rats$standard==0,"dead_rate"],pch=18,col='red')
+legend("topright", col = c('blue', 'blue', 'red','red'), pch = c(1,0,2,5), legend = c("Male and Standard", "Male and Non Standard", "Female and Standard", "Female and Non Standard"), cex = 1.5)
+
+@
+  \caption{\textbf{Scatter plot: }{plot all exploanatory variables respect to mortality .}}
+\end{figure}
+
+Figure one shows us the lower(1,2,3) and high(6) level of dose have high mortality compare to middle(4,5) level of dose, we think does level may has a qurdratic reletion with mortality. The difference of mortality between males and females is different at same dose level, for dose level 1,2,5, and 6, females has a higher mortality, for 3 and 4, males has a higher mortality. We think the the males and females have different changing rate of moratluty given dose level. For variable standard, we don't see too much different between standard therapy and without standard therapy. 
+
+
+\begin{figure}[H]
+\centering
+<<echo=FALSE, fig = TRUE, out.width='3in'>>=
+plot(dose, dead_rate, col = standard+1, pch = 16, xlab='Dose level', ylab='mortality', ylim=c(0,1),cex.lab=2,cex.axis = 1.5)
+legend("topright", col = c('black', 'red'), pch = c(16,16), legend = c("Non-Standard", "Standard"))
+@
+  \caption{\textbf{Scatter plot: }{Dose level and standard therapy respect to mortality.}}
+\end{figure}
+We remove the sex from figure 1, and we get figure 2 now. The black dots represent Non-Standard, and red dots represent Standard, we don't see the moratluty is different for Standard variable in figure 2.
+
+\begin{figure}[H]
+\centering
+<<echo=FALSE, fig = TRUE, out.width='3in'>>=
+boxplot(dead_rate ~ standard + sex, ylab='mortality', ylim=c(0,1),cex.lab=2, cex.axis = 1.5)
+@
+  \caption{\textbf{Scatter plot: }{plot all exploanatory variables respect to mortality. "0.F" means Non-standard with female.              "1.F" means standard with male.}}
+\end{figure}
+we draw the boxplot of moratluty with sex and standard. From this boxplot(figure 3), we also can see that standard dosen't affect the moraluty a lot. For sex variable, we see females has a large variance compare to males. So in our initial model, we will consider dose and sex as exploanatory variables.
+
+\subsection{Modelling data}
+<<echo=FALSE>>=
+library(MASS)
+model1 = glm(cbind(numdead,numalive)~I(dose^2)+dose,family=binomial(),data=rats)
+@
+
+To investigate how mortality depends on dose, we fit the mortality and dose into logistic regression. Based on what we find from Data exploration part, we decide our initial model to be
+\begin{equation}
+(numdead, numalive) \sim I(dose^2) + dose
+\end{equation}
+
+The residual deviance of model above is 20.44 with degree of freedom 21. We use deviance test to compare this model to satruated model, the p-value we get is 0.49, which is less than 0.05, so we aceept the intial model at 0.05 significant level. We take this model as suitable model for risk of mortality based on dose.
+
+Now we consider the other variables' relationship with mortality
+
+<<echo=FALSE>>==
+model2 = glm(cbind(numdead,numalive)~I(dose^2)+dose+sex+standard,family=binomial(),data=rats)
+stp = stepAIC(model2,
+              scope = list(upper = ~sex * standard * dose * I(dose^2),lower = ~1))
+# StepAIC gives us model3
+model3 = glm(cbind(numdead, numalive) ~ I(dose^2) + dose + sex + I(dose^2):sex + 
+               dose:sex + I(dose^2):dose, family=binomial(),data=rats)
+# look at the nested deviance tests, drop I(dose^2)*dose
+anova(model3, test = "Chisq")
+
+# we get model4
+model4 = glm(cbind(numdead, numalive) ~ I(dose^2) + dose + sex + I(dose^2):sex + 
+               dose:sex, family=binomial(),data=rats)
+@
+
+
+
+
+
+<<echo=FALSE>>==
+plot(model4$fitted.values,model4$residuals,xlab='Fitted Values', ylab='Working Residuals',
+     pch=19,xlim=c(0,1),ylim=c(-1.5,1.5))
+abline(h=0)
+#ok
+
+# LEVERAGE
+plot(influence(model4)$hat,ylim=c(0,1.5),col='blue',
+     pch=19,ylab='Leverage')
+abline(h = 2*(6/24))
+# ok
+
+# DEVIANCE RESIDUALS
+plot(model4$fitted.values,rstandard(model4),xlab='Fitted Values',
+     ylab='Deviance Residuals',pch=19,xlim=c(0,1),ylim=c(-2,2))
+abline(h=0)
+#ok
+
+qqnorm(rstandard(model4),pch=19,main='')
+qqline(rstandard(model4))
+#ok
+
+# COOKS DISTANCE
+plot(cooks.distance(model4), ylim=c(0,0.7),
+     pch=19,ylab="Cook's Distance")
+abline(h = 8/(24-2*6), col = "red")
+#ok
+@
+
+
+
+
+
+<<echo=FALSE>>==
+x <- seq(from=0,to=7,length.out=20)
+ndM <- data.frame(dose=x,sex="M")
+bw.respM <- predict(model4,ndM,type='response')
+plot(ndM$dose,bw.respM*20,type='l',col='blue',ylim=c(0,20), xlab='Dose level', ylab='Proportion dead')
+points(rats[rats$sex=="M","dose"],rats[rats$sex=="M","numdead"],pch=19,col='blue')
+ndF <- data.frame(dose=x,sex="F")
+bw.respF <- predict(model4,ndF,type='response')
+lines(ndF$dose,bw.respF*20,type='l',col='red')
+points(rats[rats$sex=="F","dose"],rats[rats$sex=="F","numdead"],pch=19,col='red')
+@
+
+
+
+
 
 
 \end{document}
