@@ -88,7 +88,7 @@ To investigate how mortality depends on dose, we fit the mortality and dose into
 
 The residual deviance of model above is 20.44 with degree of freedom 21. We use deviance test to compare this model to satruated model, the p-value we get is 0.49, which is less than 0.05, so we aceept the intial model at 0.05 significant level. We take this model as suitable model for risk of mortality based on dose.
 
-Now we consider the other variables' relationship with mortality
+Now we consider the other variables' relationship with mortality. As we discovered in Data exploration part, we add sex into our initial model and do the StepAIC.
 
 <<echo=FALSE>>==
 model2 = glm(cbind(numdead,numalive)~I(dose^2)+dose+sex+standard,family=binomial(),data=rats)
@@ -97,6 +97,14 @@ stp = stepAIC(model2,
 # StepAIC gives us model3
 model3 = glm(cbind(numdead, numalive) ~ I(dose^2) + dose + sex + I(dose^2):sex + 
                dose:sex + I(dose^2):dose, family=binomial(),data=rats)
+@
+
+The StepAIC gives us 
+\begin{equation}
+(numdead, numalive) \sim I(dose^2) + dose + sex + I(dose^2):sex + dose:sex + I(dose^2):dose
+\end{equation}
+
+<<echo=FALSE>>=
 # look at the nested deviance tests, drop I(dose^2)*dose
 anova(model3, test = "Chisq")
 
@@ -104,8 +112,6 @@ anova(model3, test = "Chisq")
 model4 = glm(cbind(numdead, numalive) ~ I(dose^2) + dose + sex + I(dose^2):sex + 
                dose:sex, family=binomial(),data=rats)
 @
-
-
 
 
 
