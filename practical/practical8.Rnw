@@ -10,23 +10,13 @@
 \title{Generalised Linear Models, Assessed Practical}
 \author{Practical No. P049}
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 
 \maketitle
 \newpage
-\section{Summary}
 
 \section{Induction}
 
-<<<<<<< HEAD
-A new treatment for lung cancer which is being tested in rats. In the experiment, 24 batches of 25 rats are tested at six different dose levels. Rats are splited into males and females. New treatment was in addition to standard therapy or without standard therapy. Recorded Number of rats who died whilst undergoing treatment as response variable. The explanatory variables are dose, sex and standard. In this paper we apply generalised linear model on those variables to find a proper model that can explain the relation between each variables with mortality. Before we fit the models, we explore and analysis data, which helps us to understand the relation between variables. Based AIC(Akaike information criterion), deviance test and the information we find in data, we select the best model from all the possible models. Finally we explain what find we in the model, 
-
-\section{Methods}
-catter plots are used to give a basic exploration of the contact time with other variables. Generalised linear models are the model that we used to fit our data, we consider a logistic regression. Forward stepwise based on AIC is used to select the best model based on minimizing AIC score, we use this method to automatic select proper model for us, but we still need human judgement for the results that stepwise gives us. 
-
-divance test, goodness of fit
-
-Diagnostic plots are used to check the data follow the assumptions and outliers analysis. T test and F test are used to check the significance of models and parameters.
-=======
 A new treatment for lung cancer which is being tested in rats. The experiment has 24 batches of 25 rats tested at six different dose levels. Rats were splited into males and females. The new treatement was in addition to standard therapy or without standard therapy. The number of rats who died whilst undergoing treatement was recorded. The reponse variable in this dataset is numdead, the exploanatory variables are dose, sex, standard.
 
 In this paper we apply generalised linear model on those variables to find a proper model that can explain the relation between each variables with number of dead rats. Before we fit the models, we explore and analysis data, which helps us to understand the relation between reponse varible and exploanatory variables. Based AIC(Akaike information criterion), diviance test and the information we find in data, we select the best model from all the possible models. We explain what find we in the model, give the goodness of fit.
@@ -47,7 +37,7 @@ Based on AIC and deviance test, we choose our final model. After that Goodness o
 \begin{figure}[H]
 \centering
 <<echo=FALSE, fig = TRUE, out.width='3in'>>=
-rats = read.csv("P:/R Data/rats.csv", header = T)
+rats = read.csv("I:/Oxford/R Data/rats.csv", header = T)
 rats$dead_rate = rats$numdead/25
   
 attach(rats)
@@ -102,29 +92,98 @@ Now we consider the other variables' relationship with mortality. As we discover
 
 <<echo=FALSE>>==
 model2 = glm(cbind(numdead,numalive)~I(dose^2)+dose+sex+standard,family=binomial(),data=rats)
-stp = stepAIC(model2,
-              scope = list(upper = ~sex * standard * dose * I(dose^2),lower = ~1))
+# stp = stepAIC(model2,
+#               scope = list(upper = ~sex * standard * dose * I(dose^2),lower = ~1))
 # StepAIC gives us model3
 model3 = glm(cbind(numdead, numalive) ~ I(dose^2) + dose + sex + I(dose^2):sex + 
                dose:sex + I(dose^2):dose, family=binomial(),data=rats)
 @
 
-The StepAIC gives us 
+The StepAIC gives us:
 \begin{equation}
 (numdead, numalive) \sim I(dose^2) + dose + sex + I(dose^2):sex + dose:sex + I(dose^2):dose
 \end{equation}
+The model above gives us the smallest AIC. We can see this model only includes dose and sex, it matches what we find in exploration part. But instead of using AIC stepwise, we also need to look at the ANOVA of this model based on Chi-squared test. 
 
 <<echo=FALSE>>=
 # look at the nested deviance tests, drop I(dose^2)*dose
-anova(model3, test = "Chisq")
+# anova(model3, test = "Chisq")
 
 # we get model4
 model4 = glm(cbind(numdead, numalive) ~ I(dose^2) + dose + sex + I(dose^2):sex + 
                dose:sex, family=binomial(),data=rats)
 @
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrrrr}
+  \hline
+ & Df & Deviance & Resid. Df & Resid. Dev & Pr($>$Chi) \\ 
+  \hline
+NULL &  &  & 23 & 84.21 &  \\ 
+  I(dose\verb|^|2) & 1 & 7.33 & 22 & 76.88 & 0.00 \\ 
+  dose & 1 & 56.44 & 21 & 20.44 & 0.00 \\ 
+  sex & 1 & 0.66 & 20 & 19.78 & 0.42 \\ 
+  I(dose\verb|^|2):sex & 1 & 3.88 & 19 & 15.90 & 0.05 \\ 
+  dose:sex & 1 & 9.07 & 18 & 6.83 & 0.00 \\ 
+  I(dose\verb|^|2):dose & 1 & 2.33 & 17 & 4.50 & 0.13 \\ 
+   \hline
+   \caption{\textbf{ANOVA table of model3}}
+\end{tabular}
+\end{table}
+
+From the ANOVA table of model3, we can see that I(dose\verb|^|2):dose is not significant at 0.05 level based on deviance test, so we consider to remove this term from our model. Even the sex term is also not significant, but interaction terms of sex(I(dose\verb|^|2):sex, dose:sex) are significant, so we keep sex in our model. Our finaly model is:
+\begin{equation}
+(numdead, numalive) \sim I(dose^2) + dose + sex + I(dose^2):sex + dose:sex
+\end{equation}
 
 
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+ & Estimate & Std. Error \\ 
+  \hline
+(Intercept) & 3.29 & 0.58 \\ 
+  I(dose\verb|^|2) & 0.36 & 0.05\\ 
+  dose & -2.69 & 0.39 \\ 
+  sexM & -1.92 & 0.79 \\ 
+  I(dose\verb|^|2):sexM & -0.24 & 0.07 \\ 
+  dose:sexM & 1.58 & 0.53 \\ 
+   \hline
+   \caption{\textbf{Parameters of model4}}
+\end{tabular}
+\end{table}
 
+Since we have interaction between sex and dose in our model, we have two equations for males and females separately:
+
+\begin{equation}
+Female : (numdead, numalive) = 3.29 + 0.36*I(dose^2) - 2.69*dose
+\end{equation}
+
+\begin{equation}
+Male : (numdead, numalive) = 3.29 + (0.36-0.24)*I(dose^2) + (-2.69+1.58)*dose - 1.92
+\end{equation}
+
+For Female rats, if rats don't receive any treatment, the log odd of mortality is 3.29. Since it is a qurdratic function, the parameter of $I(dose^2)$ is positive, this equation has a minimum point. We need to calculte the first derivative and set it equal to zero to get the minimum point. 0.36*2*dose-2.69 = 0, from this equation, we get $dose = 3.73 \approx 4$. It matches what we see in figure 
+ 
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrr}
+  \hline
+ & 2.5 \% & 97.5 \% \\ 
+  \hline
+(Intercept) & 2.19 & 4.47 \\ 
+  I(dose\verb|^|2) & 0.26 & 0.47 \\ 
+  dose & -3.48 & -1.95 \\ 
+  sexM & -3.48 & -0.39 \\ 
+  I(dose\verb|^|2):sexM & -0.39 & -0.10 \\ 
+  dose:sexM & 0.55 & 2.63 \\ 
+   \hline
+   \caption{\textbf{confidence interval of parameters}}
+\end{tabular}
+\end{table}
+
+\subsection{Goodness of fit}
 <<echo=FALSE>>==
 plot(model4$fitted.values,model4$residuals,xlab='Fitted Values', ylab='Working Residuals',
      pch=19,xlim=c(0,1),ylim=c(-1.5,1.5))
@@ -154,10 +213,7 @@ abline(h = 8/(24-2*6), col = "red")
 #ok
 @
 
-
-
-
-
+\subsection{Prediction}
 <<echo=FALSE>>==
 x <- seq(from=0,to=7,length.out=20)
 ndM <- data.frame(dose=x,sex="M")
@@ -171,9 +227,8 @@ points(rats[rats$sex=="F","dose"],rats[rats$sex=="F","numdead"],pch=19,col='red'
 @
 
 
+\section{Conclusions}
 
-
->>>>>>> bf009afd8a799c34c65b854f5e9fb5f515c7e3e2
 
 
 \end{document}
