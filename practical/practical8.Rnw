@@ -10,7 +10,7 @@
 \title{Generalised Linear Models, Assessed Practical}
 \author{Practical No. P049}
 \begin{document}
-\SweaveOpts{concordance=TRUE}
+
 
 \maketitle
 \newpage
@@ -37,7 +37,7 @@ Based on AIC and deviance test, we choose our final model. After that Goodness o
 \begin{figure}[H]
 \centering
 <<echo=FALSE, fig = TRUE, out.width='3in'>>=
-rats = read.csv("I:/Oxford/R Data/rats.csv", header = T)
+rats = read.csv("P:/R Data/rats.csv", header = T)
 rats$dead_rate = rats$numdead/25
   
 attach(rats)
@@ -88,7 +88,7 @@ To investigate how mortality depends on dose, we fit the mortality and dose into
 
 The residual deviance of model above is 20.44 with degree of freedom 21. We use deviance test to compare this model to satruated model, the p-value we get is 0.49, which is less than 0.05, so we aceept the intial model at 0.05 significant level. We take this model as suitable model for risk of mortality based on dose.
 
-Now we consider the other variables' relationship with mortality. As we discovered in Data exploration part, we add sex into our initial model and do the StepAIC.
+Now we consider the other variables with mortality. As we discovered in Data exploration part, we add sex into our initial model and do the \textit{StepAIC}.
 
 <<echo=FALSE>>==
 model2 = glm(cbind(numdead,numalive)~I(dose^2)+dose+sex+standard,family=binomial(),data=rats)
@@ -99,11 +99,11 @@ model3 = glm(cbind(numdead, numalive) ~ I(dose^2) + dose + sex + I(dose^2):sex +
                dose:sex + I(dose^2):dose, family=binomial(),data=rats)
 @
 
-The StepAIC gives us:
+The \textit{StepAIC} gives us:
 \begin{equation}
 (numdead, numalive) \sim I(dose^2) + dose + sex + I(dose^2):sex + dose:sex + I(dose^2):dose
 \end{equation}
-The model above gives us the smallest AIC. We can see this model only includes dose and sex, it matches what we find in exploration part. But instead of using AIC stepwise, we also need to look at the ANOVA of this model based on Chi-squared test. 
+The model above has the smallest AIC and 4.50 with degree of freedom 17 for residual deviance. Comparing to the intial model, the residual deviance drop 20.44-4.5 = 15.94, we can see this model fits the data better than the intial model. We also see this model only includes dose and sex, it matches what we find in exploration part. But instead of using AIC stepwise, we also need to look at the ANOVA of this model based on Chi-squared test to see if each variables is significant. 
 
 <<echo=FALSE>>=
 # look at the nested deviance tests, drop I(dose^2)*dose
@@ -117,15 +117,15 @@ model4 = glm(cbind(numdead, numalive) ~ I(dose^2) + dose + sex + I(dose^2):sex +
 \centering
 \begin{tabular}{lrrrrr}
   \hline
- & Df & Deviance & Resid. Df & Resid. Dev & Pr($>$Chi) \\ 
+ & Df & Resid. Df & Resid. Dev & Pr($>$Chi) \\ 
   \hline
-NULL &  &  & 23 & 84.21 &  \\ 
-  I(dose\verb|^|2) & 1 & 7.33 & 22 & 76.88 & 0.00 \\ 
-  dose & 1 & 56.44 & 21 & 20.44 & 0.00 \\ 
-  sex & 1 & 0.66 & 20 & 19.78 & 0.42 \\ 
-  I(dose\verb|^|2):sex & 1 & 3.88 & 19 & 15.90 & 0.05 \\ 
-  dose:sex & 1 & 9.07 & 18 & 6.83 & 0.00 \\ 
-  I(dose\verb|^|2):dose & 1 & 2.33 & 17 & 4.50 & 0.13 \\ 
+NULL & & 23 & 84.21 &  \\ 
+  I(dose\verb|^|2) & 1 & 22 & 76.88 & 0.00 \\ 
+  dose & 1 & 21 & 20.44 & 0.00 \\ 
+  sex & 1 & 20 & 19.78 & 0.42 \\ 
+  I(dose\verb|^|2):sex & 1 & 19 & 15.90 & 0.05 \\ 
+  dose:sex & 1 & 18 & 6.83 & 0.00 \\ 
+  I(dose\verb|^|2):dose & 1 & 17 & 4.50 & 0.13 \\ 
    \hline
    \caption{\textbf{ANOVA table of model3}}
 \end{tabular}
@@ -137,35 +137,92 @@ From the ANOVA table of model3, we can see that I(dose\verb|^|2):dose is not sig
 \end{equation}
 
 
+\subsection{Goodness of fit}
+\begin{figure}[H]
+\centering
+<<echo=FALSE>>==
+# plot(model4$fitted.values,model4$residuals,xlab='Fitted Values', ylab='Working Residuals',
+#      pch=1,xlim=c(0,1),ylim=c(-1.5,1.5), cex.lab=1.5)
+# abline(h=0)
+# #ok
+par(mfrow = c(2, 2))
+
+# DEVIANCE RESIDUALS
+plot(model4$fitted.values,rstandard(model4),xlab='Fitted Values', ylab='Deviance Residuals', 
+     pch=1,ylim=c(-2,2), cex.lab=1.5, main = "Deviance Residuals")
+abline(h=0, col = "red")
+#ok
+
+qqnorm(rstandard(model4),pch=1,main='Q-Q plot', cex.lab=1.5, ylim = c(-2,2))
+qqline(rstandard(model4),col = "red")
+#ok
+
+# LEVERAGE
+plot(influence(model4)$hat,ylim=c(0,1.5),pch=1,ylab='Leverage', cex.lab=1.5, main = "Leverage")
+abline(h = 2*(6/24), col = "red")
+# ok
+
+# COOKS DISTANCE
+plot(cooks.distance(model4), ylim=c(0,0.7), pch=1,ylab="Cook's Distance", cex.lab=1.5, main = "Cooks Distance")
+abline(h = 8/(24-2*6), col = "red")
+#ok
+@
+  \caption{\textbf{Goodness of fit plot }{}}
+\end{figure}
+The Deviance residuals shows but we don't see any pattern in the plot, so we think data don't valid assumption of equal variance
+The QQ-plot shows the most of the points are on the red line. We consider there are no obvious violation of normality assumption. 
+The leverage plot shows all points are under the red line which is 2*p/n, so no data has a large leverage.
+The cook distance plot also shows all points are under red line which is 8/n-2p, so no data has a large influence.
+The model fits data well, and no outliers in our data.
+
+\subsection{Prediction}
+\begin{figure}[H]
+\centering
+<<echo=FALSE, out.width='4in'>>==
+x <- seq(from=0,to=7,length.out=20)
+ndM <- data.frame(dose=x,sex="M")
+bw.respM <- predict(model4,ndM,type='response')
+plot(ndM$dose,bw.respM*20,type='l',col='blue',ylim=c(0,20), xlab='Dose level', ylab='Proportion dead', cex.lab=1.5)
+points(rats[rats$sex=="M","dose"],rats[rats$sex=="M","numdead"],pch=19,col='blue')
+ndF <- data.frame(dose=x,sex="F")
+bw.respF <- predict(model4,ndF,type='response')
+lines(ndF$dose,bw.respF*20,type='l',col='red')
+points(rats[rats$sex=="F","dose"],rats[rats$sex=="F","numdead"],pch=19,col='red')
+legend("topright", col = c('blue', 'red'), pch = c(19,19),legend = c("Males", "Females"), cex = 1.5)
+@
+  \caption{\textbf{Prediction plot: }{plot fitted line on data}}
+\end{figure}
 \begin{table}[ht]
 \centering
 \begin{tabular}{rrrrr}
   \hline
- & Estimate & Std. Error \\ 
+ & Estimate & Std. Error & CI 2.5 \% & CI 97.5 \% \\ 
   \hline
-(Intercept) & 3.29 & 0.58 \\ 
-  I(dose\verb|^|2) & 0.36 & 0.05\\ 
-  dose & -2.69 & 0.39 \\ 
-  sexM & -1.92 & 0.79 \\ 
-  I(dose\verb|^|2):sexM & -0.24 & 0.07 \\ 
-  dose:sexM & 1.58 & 0.53 \\ 
+(Intercept) & 3.29 & 0.58 & 2.19 & 4.47 \\ 
+  I(dose\verb|^|2) & 0.36 & 0.05 & 0.26 & 0.47 \\ 
+  dose & -2.69 & 0.39 & -3.48 & -1.95 \\ 
+  sexM & -1.92 & 0.79 & -3.48 & -0.39 \\ 
+  I(dose\verb|^|2):sexM & -0.24 & 0.07 & -0.39 & -0.10 \\ 
+  dose:sexM & 1.58 & 0.53 & 0.55 & 2.63 \\ 
    \hline
    \caption{\textbf{Parameters of model4}}
 \end{tabular}
 \end{table}
 
-Since we have interaction between sex and dose in our model, we have two equations for males and females separately:
+Since we have interaction between sex and dose in our model, we have two equations for males and females separately based on table 2:
 
 \begin{equation}
-Female : (numdead, numalive) = 3.29 + 0.36*I(dose^2) - 2.69*dose
+Females : (numdead, numalive) = 3.29 + 0.36*I(dose^2) - 2.69*dose
 \end{equation}
 
 \begin{equation}
-Male : (numdead, numalive) = 3.29 + (0.36-0.24)*I(dose^2) + (-2.69+1.58)*dose - 1.92
+Males : (numdead, numalive) = (3.29 - 1.92) + (0.36-0.24)*I(dose^2) + (-2.69+1.58)*dose
 \end{equation}
 
-For Female rats, if rats don't receive any treatment, the log odd of mortality is 3.29. Since it is a qurdratic function, the parameter of $I(dose^2)$ is positive, this equation has a minimum point. We need to calculte the first derivative and set it equal to zero to get the minimum point. 0.36*2*dose-2.69 = 0, from this equation, we get $dose = 3.73 \approx 4$. It matches what we see in figure 
- 
+For Female rats, if rats don't receive any treatment, the predited log odd of mortality is 3.29. Since it is a qurdratic function, from figure5 we can see it has a minimum value. We need to calculte the first derivative and set it equal to zero to find which dose level has minimum value. 0.36*2*dose-2.69 = 0, from this equation, we get $dose = 3.73 \approx 4$. When dose = 4, the log odd mortality of females rats is smallest. It matches what we see in figure 5. For Male rats, we do same analysis. If rats don't receive any treatment, the predited log odd of mortality is 1.37. (0.36-0.24)*2*dose-(-2.69+1.58) = 0, from this equation, we get $dose = 4.6 \approx 5$. It also matches what we see in figure 5. So for both Females and Males rats, when starts with low dose level, the mortality will decrease as dose level increase, but after the dose level larger than the critical value(4 for Females, 5 for Males), the mortality will increase as dose level increase. 
+If we compare Females and Male model, we can see how sex varible affects mortality. $dose^2_males$ = 0.12, $dose^2_female = 0.36$, it means females are more senstive to the dose level than males. And the best dose level for females and males is different, females is 4, males is 5, so when use this treatment for lung cancer, we need consider the sex, and give different dose level.  
+
+
 \begin{table}[ht]
 \centering
 \begin{tabular}{rrr}
@@ -182,50 +239,6 @@ For Female rats, if rats don't receive any treatment, the log odd of mortality i
    \caption{\textbf{confidence interval of parameters}}
 \end{tabular}
 \end{table}
-
-\subsection{Goodness of fit}
-<<echo=FALSE>>==
-plot(model4$fitted.values,model4$residuals,xlab='Fitted Values', ylab='Working Residuals',
-     pch=19,xlim=c(0,1),ylim=c(-1.5,1.5))
-abline(h=0)
-#ok
-
-# LEVERAGE
-plot(influence(model4)$hat,ylim=c(0,1.5),col='blue',
-     pch=19,ylab='Leverage')
-abline(h = 2*(6/24))
-# ok
-
-# DEVIANCE RESIDUALS
-plot(model4$fitted.values,rstandard(model4),xlab='Fitted Values',
-     ylab='Deviance Residuals',pch=19,xlim=c(0,1),ylim=c(-2,2))
-abline(h=0)
-#ok
-
-qqnorm(rstandard(model4),pch=19,main='')
-qqline(rstandard(model4))
-#ok
-
-# COOKS DISTANCE
-plot(cooks.distance(model4), ylim=c(0,0.7),
-     pch=19,ylab="Cook's Distance")
-abline(h = 8/(24-2*6), col = "red")
-#ok
-@
-
-\subsection{Prediction}
-<<echo=FALSE>>==
-x <- seq(from=0,to=7,length.out=20)
-ndM <- data.frame(dose=x,sex="M")
-bw.respM <- predict(model4,ndM,type='response')
-plot(ndM$dose,bw.respM*20,type='l',col='blue',ylim=c(0,20), xlab='Dose level', ylab='Proportion dead')
-points(rats[rats$sex=="M","dose"],rats[rats$sex=="M","numdead"],pch=19,col='blue')
-ndF <- data.frame(dose=x,sex="F")
-bw.respF <- predict(model4,ndF,type='response')
-lines(ndF$dose,bw.respF*20,type='l',col='red')
-points(rats[rats$sex=="F","dose"],rats[rats$sex=="F","numdead"],pch=19,col='red')
-@
-
 
 \section{Conclusions}
 
