@@ -161,11 +161,15 @@ Female : (numdead, numalive) = 3.29 + 0.36*I(dose^2) - 2.69*dose
 \end{equation}
 
 \begin{equation}
-Male : (numdead, numalive) = 3.29 + (0.36-0.24)*I(dose^2) + (-2.69+1.58)*dose - 1.92
+Male : (numdead, numalive) = (3.29-1.92) + (0.36-0.24)*I(dose^2) + (-2.69+1.58)*dose
 \end{equation}
 
-For Female rats, if rats don't receive any treatment, the log odd of mortality is 3.29. Since it is a qurdratic function, the parameter of $I(dose^2)$ is positive, this equation has a minimum point. We need to calculte the first derivative and set it equal to zero to get the minimum point. 0.36*2*dose-2.69 = 0, from this equation, we get $dose = 3.73 \approx 4$. It matches what we see in figure 
- 
+For Female rats, if rats don't receive any treatment, the log odd of mortality is 3.29. Since it is a qurdratic function, $b^2 - 4ac = 2.69^2-4*3.29*0.36 = 2.5$ is greater than zero, this equation has a minimum point. We need to calculte the first derivative and set it equal to zero to get the minimum point. 0.36*2*dose-2.69 = 0, from this equation, we get $dose = 3.73 \approx 4$. When dose equal to 4, we have the smallest log odd of moratality. It matches what we see in figure 1. 
+
+For Male rats, we do the same analysis. If rats don't receive any treatment, the log odd of mortality is 3.29 - 1.92 = 1.37. Since it is a qurdratic function, $b^2 - 4ac = (-2.69+1.58)^2 - 4*(3.29-1.92)*(-2.69+1.58) = 7.31$ is greater than zero, (0.36-0.24)*2*dose-(-2.69+1.58) = 0, from this equation, we get $dose = 4.62 \approx 5$. When dose equal to 5, we have the smallest log odd of moratality. It also matches what we see in figure 1. 
+
+Now we compare the Female and male model. 
+
 \begin{table}[ht]
 \centering
 \begin{tabular}{rrr}
