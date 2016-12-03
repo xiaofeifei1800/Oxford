@@ -13,7 +13,7 @@ attach(rats)
 
 par(mar=c(5,5,1,1))
 plot(rats[rats$sex=='M'&rats$standard==1,"dose"],rats[rats$sex=='M'&rats$standard==1,"dead_rate"],pch=1,col='blue',xlab='Dose level',
-     ylab='Proportion dead', ylim=c(0,1))
+     ylab='mortality', ylim=c(0,1))
 
 points(rats[rats$sex=='M'&rats$standard==0,"dose"],rats[rats$sex=='M'&rats$standard==0,"dead_rate"],pch=0,col='blue')
 points(rats[rats$sex=='F'&rats$standard==1,"dose"],rats[rats$sex=='F'&rats$standard==1,"dead_rate"],pch=2,col='red')
@@ -24,10 +24,11 @@ legend("topright", col = c('blue', 'blue', 'red','red'), pch = c(1,0,2,5), legen
 # The difference between standard zore and stadard one is not so much different, so we remove the standard from the 
 # plot, and look at mortality respect to does and sex
 
-plot(dose, dead_rate, col = sex, pch = 16, xlab='Dose level', ylab='Proportion dead', ylim=c(0,1))
+plot(dose, dead_rate, col = standard+1, pch = 16, xlab='Dose level', ylab='mortality', ylim=c(0,1))
 #we see the the numdead decrease first, as dose increase, and increase after, it may follows a quadratic, the sex and dose have affect, 
 #but there is not a clear relation.
 
+boxplot(dead_rate ~ standard + sex, ylab='mortality', ylim=c(0,1))
 
 ###########################################  3
 
