@@ -139,27 +139,21 @@ legend('topright',
 #posterior predictive distribution of RSS/var
 #the variance looked a bit low so I compared the
 #ppd of (y-E(y))^2/E(y) with the value on the data
+########################################
+## RSS/var, mean/var, (y-E(y))^2/E(y) ##
+########################################
 n=length(a$count); y=rep(NA,n); ts=rep(NA,dim(B)[1])
 for (k in 1:(dim(B)[1])) {
   mu.sim=mu(a,B[k,])
   for (j in 1:n) {
     y[j]=rpois(1,mu.sim[j])
   }
-  ts[k]=mean((y-mu.sim)^2/mu.sim)
+  ts[k]=mean(y)/var(y)
 }
 hist(ts,sqrt(dim(B)[1])); 
 bayes.beta = apply(B,2,mean)
-dv=mean((y-mu(a,bayes.beta))^2/mu(a,bayes.beta))
+dv=mean(count)/var(count)
 abline(v=dv,col=2)
 mean(ts>dv) #no issues
 
-#post pred mean/var
-mean.var.ratio.child=rep(0,1000)
-for (trial in 1:1000) {
-  sim1=rnbinom(n1, size=(a+s1), prob=(b+n1)/(b+n1+1))
-  mean.var.ratio.child[trial]=mean(sim1)/var(sim1)
-}
-hist(mean.var.ratio.child,freq=F,main='',ylab='posterior predictive density')
-abline(v=mean(y1)/var(y1),lwd=3)
-legend('topright', c('PPD of M/V ratio','Mean/Var ratio of data'),lwd=c(1,3))
 
