@@ -1,0 +1,221 @@
+\documentclass[12pt]{article}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{parskip}
+\usepackage{amsmath}
+\restylefloat{table}
+\usepackage{subcaption}
+\renewcommand\thesubfigure{\roman{subfigure}}
+\usepackage[a4paper, total={6in, 8in}]{geometry}
+
+
+\title{Generalised Linear Models, Assessed Practical}
+\author{Practical No. P049}
+\begin{document}
+
+
+\maketitle
+\newpage
+
+\section{Introduction}
+
+A new treatment for lung cancer which was tested in rats. The experiment has 24 batches of 25 rats tested at six different dose levels. Rats were split into males and females. The new treatment was in addition to standard therapy or without standard therapy. The response variable in this dataset is numdead, which is the number of rats who died whilst undergoing treatment The exploratory variables are dose, sex, standard.
+
+In this paper we applied generalised linear model analysis to find a proper model that can explain the relationship between each variable with the number of dead rats. We firstly offered some explanatory plots of the data. We fitted logistic regression of mortality with dose level, then we considered to add other variables into model. We used stepwise AIC and likelihood ratio test as our model selection methods. After we got a model that is most suitable in describing data, we performed goodness of fit test to check the quality of the model and give interpretation of the model.
+
+
+\section{Methods}
+
+
+
+\section{Results}
+\subsection{Prior elicitation}
+In the ”zeroth” quarter the expected number of aids cases is β1. This must
+be a fairly small number, around 1 corresponding to the index case, since this is the beginning of the
+epidemic. As we move from quarter 13 to quarter 14 the number of aids cases from order (1 + 13β2)
+to (1 + 14β2) so the increase is about (2 + 27β)β2. If β2 is as large as 10 this is in the thousands which
+seems very large considering this is year four. I am a bit uncertain though so I will take βi ∼ 2.5×t(1),
+that is, a t-distribution scaled by 2.5 (a 90% chance βi < 8 and 95if the data support it). I might
+reasonably also condition β2 > 0 but I have not done this.
+
+\subsection{Data exploration}
+\begin{figure}[H]
+\centering
+
+<<echo=FALSE, fig = TRUE, out.width='4in'>>=
+a=read.table("/Users/xiaofeifei/Downloads/beetlelarva.txt")
+a$easting = as.numeric(a$easting)
+attach(a)
+
+library(ggplot2)
+
+
+@
+  \caption{\textbf{Scatter plot: }{plot all exploratory variables respect to mortality .}}
+\end{figure}
+A scatter plot shown in Figure 1 in next page illustrates that the low(1,2,3) and high(6) level of dose have high mortality compared with middle(4,5) level of dose. Does level may has a quadratic relationship with mortality. Additionally, the mortality of male and female is different at same dose level. For dose level 1,2,5, and 6, females have a higher mortality. For 3 and 4, males have a higher mortality. The males and females have different changing rate of mortality under different dose levels. For variable standard, there is less difference in mortality with or without standard therapy.
+\subsection{Modelling data}
+
+
+\subsection{Model selection}
+
+
+\subsection{Goodness of fit}
+
+
+\subsection{Interpretation}
+
+
+
+\section{Conclusions}
+In conclusion, the mortality decreases when dose level increases at the beginning, but the mortality starts to increase when dose level keeps increasing after certain dose level (3.73 for females, 4.62 for males). We also notice females and males have different level of response for different dose level, where females' mortality is easier to be affected by dose level. This treatment works more effectively on females.
+
+There are some limitations in this model. From our final model, it indicates that the sex affects the mortality, but we only have 12 data for each gender, the sample size may not be large enough for us to get an accurate result. Secondly, we only know the gender of rats, and we may need more characters about rats, such as weight, size, age, because sex and dose levels may not be only factors that affect mortality. There are only six difference dose levels in this experiment, so it is better to have more different dose levels, or divides existing levels into small groups. For binomial data, the link function could be probit, logistic and log-log,  logistic is only link function we tried in this paper, so in the future work, we can try other link functions and compare how good they fit the data. One more thing, there are 600 rats taken in this experiment, which are divided into 24 batches. The data we used is the number of death in each batch. However, there is an alternative way to analyse all these 600 rats individually. We could categorize the results of mortality with 0 (alive) and 1 (death) as a new variable for each rat. Therefore, there are 600 data points which could be used to fit the model, which might be an alternative way to analyse this risk of mortality.
+
+\newpage
+\appendix
+\section{Appendix}
+\subsection{R code}
+<<eval = FALSE>>=
+#########################################   1
+rats = read.csv("P:/R Data/rats.csv", header = T)
+
+# take a initial look of data, and check if it is loaded correctly
+str(rats)
+# will consider does as one exploration varible
+
+##########################################  2
+#turn to dead rate
+rats$dead_rate = rats$numdead/25
+  
+attach(rats)
+
+par(mar=c(5,5,1,1))
+plot(rats[rats$sex=='M'&rats$standard==1,"dose"],rats[rats$sex=='M'&
+    rats$standard==1,"dead_rate"],pch=1,col='blue',xlab='Dose level',
+    ylab='mortality', ylim=c(0,1))
+
+points(rats[rats$sex=='M'&rats$standard==0,"dose"],rats[rats$sex=='M'&
+                        rats$standard==0,"dead_rate"],pch=0,col='blue')
+points(rats[rats$sex=='F'&rats$standard==1,"dose"],rats[rats$sex=='F'&
+                        rats$standard==1,"dead_rate"],pch=2,col='red')
+points(rats[rats$sex=='F'&rats$standard==0,"dose"],rats[rats$sex=='F'&
+                        rats$standard==0,"dead_rate"],pch=5,col='red')
+legend("topright", col = c('blue', 'blue', 'red','red'), pch = 
+         c(1,0,2,5),legend = c("Male and Standard", "Male and Non 
+                               Standard", "Female and Standard", 
+                               "Female and Non Standard"))
+
+# The difference between standard zore and stadard one is not so much 
+#different,so we remove the standard from the plot, and look at
+#mortality respect to does and sex
+
+plot(dose, dead_rate, col = standard+1, pch = 16, xlab='Dose level', 
+     ylab='mortality', ylim=c(0,1))
+#we see the the numdead decrease first, as dose increase, and increase 
+#after, it may follows a quadratic, the sex and dose have affect, but 
+#there is not a clear relation.
+
+boxplot(dead_rate ~ standard + sex, ylab='mortality', ylim=c(0,1))
+
+###########################################  3
+
+library(MASS)
+
+# we see a quadratic relationship between does and dead-rate, so apply
+#quadratic model
+model1 = glm(cbind(numdead,numalive)~I(dose^2)+dose,family=binomial(),
+             data=rats)
+summary(model1)
+1-pchisq(20.44,21)
+#favor current model
+
+###########################################  4
+#Comment on your model and interpret the parameters giving suitable 
+#measures of uncertainty
+
+#stepAIC#
+# put all other varibles, and do stepwise with AIC
+model2 = glm(cbind(numdead,numalive)~I(dose^2)+dose+sex+standard,
+             family=binomial(),data=rats)
+stp = stepAIC(model2,
+              scope = list(upper = ~sex * standard * dose * I(dose^2),
+                           lower = ~1))
+# StepAIC gives us model3
+model3 = glm(cbind(numdead, numalive) ~ I(dose^2) + dose + sex +
+              I(dose^2):sex + dose:sex + I(dose^2):dose,
+              family=binomial(),data=rats)
+# look at the nested deviance tests, drop I(dose^2)*dose
+anova(model3, test = "Chisq")
+
+# we get model4
+model4 = glm(cbind(numdead, numalive) ~ I(dose^2) + dose + sex + 
+               I(dose^2):sex + dose:sex, family=binomial(),data=rats)
+
+# I don't know if I should do it
+#anova(justice.glm<-glm(formula = cbind(numdead,numalive)~I(dose^2)
+#* sex * standard * dose, family = binomial(), data = rats),
+#test='Chisq')
+
+# compare the current model with the model we find last step
+anova(model1, model4, test = "Chisq")
+
+exp(confint(model4))
+###########################################
+
+summary(model4)
+1 - pchisq(6.8287, 18)
+#model looks OK RD=6.8287 on 18 DOF
+
+rstandard(model4)
+sum(abs(rstandard(model4)) >= 2) #no big numbers - so OK (-2,2)
+
+#Working Residuals
+par(mar=c(5,5,1,1))
+plot(model4$fitted.values,model4$residuals,xlab='Fitted Values', 
+     ylab='Working Residuals', pch=19,xlim=c(0,1),ylim=c(-1.5,1.5))
+abline(h=0)
+#ok
+
+# LEVERAGE
+plot(influence(model4)$hat,ylim=c(0,1.5),col='blue',
+     pch=19,ylab='Leverage')
+abline(h = 2*(6/24))
+# ok
+
+# DEVIANCE RESIDUALS
+plot(model4$fitted.values,rstandard(model4),xlab='Fitted Values',
+     ylab='Deviance Residuals',pch=19,xlim=c(0,1),ylim=c(-2,2))
+abline(h=0)
+#ok
+
+qqnorm(rstandard(model4),pch=19,main='')
+qqline(rstandard(model4))
+#ok
+
+# COOKS DISTANCE
+plot(cooks.distance(model4), ylim=c(0,0.7),
+     pch=19,ylab="Cook's Distance")
+abline(h = 8/(24-2*6), col = "red")
+#ok
+############################################
+x <- seq(from=0,to=7,length.out=20)
+ndM <- data.frame(dose=x,sex="M")
+bw.respM <- predict(model4,ndM,type='response')
+plot(ndM$dose,bw.respM*20,type='l',col='blue',ylim=c(0,20), xlab='Dose 
+     level', ylab='Proportion dead')
+points(rats[rats$sex=="M","dose"],rats[rats$sex=="M","numdead"],pch=19,
+       col='blue')
+ndF <- data.frame(dose=x,sex="F")
+bw.respF <- predict(model4,ndF,type='response')
+lines(ndF$dose,bw.respF*20,type='l',col='red')
+points(rats[rats$sex=="F","dose"],rats[rats$sex=="F","numdead"],pch=19
+       ,col='red')
+abline(v = 3.73, col = "red")
+abline(v = 4.62, col = "blue")
+legend("topright", col = c('blue', 'red'), pch = c(19,19),legend = 
+         c("Males", "Females"), cex = 1.5)
+
+
+@
+\end{document}
