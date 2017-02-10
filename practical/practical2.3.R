@@ -123,6 +123,21 @@ acf(as.mcmc(B),lag.max=200)
 # goodness of fit 
 # posterior preditive checks
 # plot ECDF of data and predictive distribution
+
+n=length(a$count); y=matrix(NA,dim(B)[1],n)
+for (k in 1:(dim(B)[1])) {
+  mu.sim=mu(a,B[k,])
+  for (j in 1:n) {
+    y[k,j]=rpois(1,mu.sim[j])
+  }
+}
+
+bayes.beta = apply(B,2,mean)
+mu.sim=mu(a,bayes.beta)
+n=length(a$count); y=rep(NA,n)
+for (j in 1:n) {
+  y[j]=rpois(1,mu.sim[j])
+}
 ecdf<-(table(c(count)))/sum(table(count))
 
 ecdf.mc<-(table(c(y)))/sum(table(y))
@@ -155,5 +170,33 @@ bayes.beta = apply(B,2,mean)
 dv=mean(count)/var(count)
 abline(v=dv,col=2)
 mean(ts>dv) #no issues
+
+########################################################
+#Using simulation in prior elicitation Challanger/logistic example
+#######################
+#######################
+#######################
+ust=c(53,57,58,63,66,67,67,67,68,69,70,70,70,70,72,73,75,75,76,76,78,79,81)
+mean(ust)
+sd(ust)
+
+# pdf('logitpriorsample.pdf',12,6)
+par(mfrow=c(1,2))
+x=seq(min(count),max(count),length.out=100)
+N=100
+v=9
+b.prior=matrix(rnorm(3*N,0,v),N,3) #simulate prior
+b.prior[,2] = abs(b.prior[,2])
+y=logit(b.prior[1,],x)
+plot(x,y,type='l',xlim=c(min(count),max(count)),ylim=c(0,1),xlab='scale(temp)',ylab='failure probability',main=paste('Variance',v))
+for (k in 2:N) {if (b.prior[k,2]>0) {y=logit(b.prior[k,],x); lines(x,y);}} #plot failure probability functions
+
+v=1
+b.prior=matrix(rnorm(2*N,0,v),N,2)
+b.prior[,2] = abs(b.prior[,2])
+y=logit(b.prior[1,],x)
+plot(x,y,type='l',xlim=c(min(temp),max(temp)),ylim=c(0,1),xlab='scale(temp)',ylab='failure probability',main=paste('Variance',v))
+for (k in 2:N) {if (b.prior[k,2]>0) {y=logit(b.prior[k,],x); lines(x,y);}}
+# dev.off()
 
 
