@@ -1,0 +1,117 @@
+library(quantmod)
+
+ftse100 = new.env()
+
+getSymbols("^FTSE", env = ftse100, src = "yahoo",
+           from = as.Date("1984-03-01"), to = as.Date("2017-01-30"))
+
+FTSE <- ftse100$FTSE
+
+returns = diff(log(FTSE$FTSE.Close))
+returns = returns[2:length(returns)]
+
+returns.mat = coredata(returns)
+dates = index(returns)
+
+############# Question 1.1
+plot(returns)
+plot(returns["1987-01-01/1987-12-31"])
+plot(returns["2008/2009"])
+hist(returns)
+
+qqnorm(returns)
+summary(returns)
+
+############# Question 1.2
+theta = quantile(returns.mat[,1],c(0.01,0.25,0.5,0.75,0.99))
+
+bootstrap = function(data,n)
+{
+  boot_mat = matrix(NA, nrow = n, ncol = 5)
+  for(i in 1:n)
+  {
+    newdata = sample(data,length(data),replace = T)
+    temp = quantile(newdata,c(0.01,0.25,0.5,0.75,0.99))
+    boot_mat[i,] = temp
+  }
+  return(boot_mat)
+}
+
+simulate_data = bootstrap(returns.mat[,1],1000)
+head(simulate_data)
+
+# 99% CV
+variance = apply(simulate_data, 2, var)
+CV_low = theta - variance*qnorm(1-0.01/2)
+CV_high = theta + variance*qnorm(1-0.01/2)
+
+############### Question 1.3
+# 0.01
+n = sum(returns.mat[,1]>=log(1.01))
+p = n/nrow(returns.mat)
+
+simulate_p = bootstrap1(returns.mat[,1],1000,1.01)
+CV_p_low = p - var(simulate_p)*qnorm(1-0.01/2)
+CV_p_high = p + var(simulate_p)*qnorm(1-0.01/2)
+
+#0.05
+n = sum(returns.mat[,1]>=log(1.05))
+p = n/nrow(returns.mat)
+
+simulate_p = bootstrap1(returns.mat[,1],1000,1.05)
+CV_p_low = p - var(simulate_p)*qnorm(1-0.01/2)
+CV_p_high = p + var(simulate_p)*qnorm(1-0.01/2)
+
+############# Question 2.1
+# build data
+y = c(1,1,1,1,2,2,1,1,1,1,2,2,1,2)
+
+mu = c(0,1,0,0,0,0)
+
+A = matrix(0, nrow = 6, ncol = 6)
+diag(A) = 0.4
+A[6,1] = 0.3
+B = matrix(c(0.9,0.5,0.1,0,0,0,1,2,3,4,5,6),nrow = 6, ncol = 2)
+B[2,1] = 0.9
+B[2,2] = 0.5
+B[2,3] = 0.1
+B[2,4:6] = 0
+
+alpha = alpha_recursion(y, mu, A, B)
+############### functions
+bootstrap = function(data,n)
+{
+  boot_mat = matrix(NA, nrow = n, ncol = 5)
+  for(i in 1:n)
+  {
+    newdata = sample(data,length(data),replace = T)
+    temp = quantile(newdata,c(0.01,0.25,0.5,0.75,0.99))
+    boot_mat[i,] = temp
+  }
+  return(boot_mat)
+}
+
+bootstrap1 = function(data,n,percent)
+{
+  boot = numeric(n)
+  for(i in 1:n)
+  {
+    newdata = sample(data,length(data),replace = T)
+    temp = sum(newdata>=log(percent))/length(data)
+    boot[i] = temp
+  }
+  return(boot)
+}
+
+
+alpha_recursion = function(y, mu, A, B)
+{
+  K = length(mu)
+  T = length(y)
+  alpha = matrix(0, nrow=T,ncol=K)
+  for (j in 1:K) alpha[1,j] = B[j,y[1]] *sum(A[,j]* mu)
+  for (t in 2:T) for (j in 1:K) alpha[t,j] = B[j,y[t]] *sum(A[,j]* alpha[t-1,])
+  return(alpha)
+}
+
+
