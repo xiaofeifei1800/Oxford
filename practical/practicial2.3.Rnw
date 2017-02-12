@@ -1,5 +1,6 @@
 \documentclass[12pt]{article}
 \usepackage{graphicx}
+\usepackage{grffile}
 \usepackage{float}
 \usepackage{parskip}
 \usepackage{amsmath}
@@ -9,9 +10,10 @@
 \usepackage[a4paper, total={6in, 8in}]{geometry}
 
 
-\title{Generalised Linear Models, Assessed Practical}
+\title{Bayes Methods, Assessed Practical}
 \author{Practical No. P049}
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 
 
 \maketitle
@@ -19,24 +21,66 @@
 
 \section{Introduction}
 
-A new treatment for lung cancer which was tested in rats. The experiment has 24 batches of 25 rats tested at six different dose levels. Rats were split into males and females. The new treatment was in addition to standard therapy or without standard therapy. The response variable in this dataset is numdead, which is the number of rats who died whilst undergoing treatment The exploratory variables are dose, sex, standard.
+Japanese beetle larvae is a common species of beetle. These insects damage plants by skeletonizing the foliage. An 18×8 foot area of field planted with maize were used to observe number of Japanese beetle larvae,
+It was split into 3×1 foot rectangles (so 48 rectangles in all).  The plough ran down the columns, and the seeds were planted in sequence down the columns. The data records the n = 48 counts of Japanese beetle
+larvae found in the top foot of soil of each rectangle, and information about northing and easting.
 
-In this paper we applied generalised linear model analysis to find a proper model that can explain the relationship between each variable with the number of dead rats. We firstly offered some explanatory plots of the data. We fitted logistic regression of mortality with dose level, then we considered to add other variables into model. We used stepwise AIC and likelihood ratio test as our model selection methods. After we got a model that is most suitable in describing data, we performed goodness of fit test to check the quality of the model and give interpretation of the model.
+In this paper we applied baysian analysis to analyse how the Northing and Easting values of a rectangular plot influence the distribution of the number of beetle larvae. We firstly did prior elicitation to find a proper prior of our estimators, then followed with explanatory plots and tables of the data. General linear model with poisson link function was used for modeling japanese beetle larvaes with northing and easting, we fited model with MCMC methods. We used bayes factors as our model selection methods, and we performed goodness of fit test to check the quality of the model and give interpretation of the results.
 
 
 \section{Methods}
+Scatter plots are used to give a basic exploration of the mortality with other variables. General linear model with poisson link function is the model that we used to fit our data. The equation is: 
+\begin{equation}
+\boldsymbol{Y} =\exp {(\mathbf {X} {\boldsymbol {\beta }})}\,\!
+\end{equation}
 
+Metropolis Hastings algorithm was used for performing Markov chain Monte Carlo (MCMC) method. Let $X_t = i$. $X_{t+1}$ is determined in the following way.
+\newline
+1. Draw j $\sim$ $q(\cdot\mid i)$ and u $\sim$ U$[0, 1]$.\hfill \break
+2. If u $\leq \alpha (j \mid i)$ where $\alpha (j \mid i)=\min \left(1,{\frac {P(x')}{P(x)}}{\frac {g(x|x')}{g(x'|x)}}\right)$\hfill \break
+set $X_{t+1} = j$, otherwise set $X_{t+1}$ = i.
 
+Trace plot and autocorrelation function are used to check MCMC convergence. Bayes factor was used for model selection. For Bayes factor, the plausibility of the two different models M1 and M2, parametrised by model parameter vectors ${\displaystyle \theta _{1}}  \theta_1  and {\displaystyle \theta _{2}} \theta _{2}$ is assessed by the Bayes factor B given by:
+\begin{equation}
+B_{1,2}={\frac  {\Pr(D|M_{1})}{\Pr(D|M_{2})}}={\frac  {\int \Pr(\theta _{1}|M_{1})\Pr(D|\theta _{1},M_{1})\,d\theta _{1}}{\int \Pr(\theta _{2}|M_{2})\Pr(D|\theta _{2},M_{2})\,d\theta _{2}}}.
+\end{equation}
+
+Goodness of fit methods are used to assess the quality of our final model. Empirical distribution function of data and predictive distribution, predictive distribution of the mean/variance ratio were used for posterior preditive check. 
 
 \section{Results}
 \subsection{Prior elicitation}
-In the ”zeroth” quarter the expected number of aids cases is β1. This must
-be a fairly small number, around 1 corresponding to the index case, since this is the beginning of the
-epidemic. As we move from quarter 13 to quarter 14 the number of aids cases from order (1 + 13β2)
-to (1 + 14β2) so the increase is about (2 + 27β)β2. If β2 is as large as 10 this is in the thousands which
-seems very large considering this is year four. I am a bit uncertain though so I will take βi ∼ 2.5×t(1),
-that is, a t-distribution scaled by 2.5 (a 90% chance βi < 8 and 95if the data support it). I might
-reasonably also condition β2 > 0 but I have not done this.
+We considered Poisson distribution as the distribution of the response in each cell. From We would use predictors as numeric variables. The expected number of bettle larvae is $\beta_1$. This must be a fairly number, we might expected the mean of bettle larvaes aournd 5 or 6. For the rest of parameters, since our hypothesis is "How do the Northing and Easting values of a rectangular plot influence the distribution of the number of beetle larvae in that plot?", we may assume that non informative with respect to any direction. We took $\beta_{2,3} \sim N(0,1)$, and $\beta_1 \sim N(2,1)$.
+
+<<echo=FALSE, fig = TRUE, out.width='4in'>>=
+a=read.table("/Users/xiaofeifei/Downloads/beetlelarva.txt")
+a$easting = as.numeric(a$easting)
+attach(a)
+  
+mu<-function(a,beta) {
+  n=dim(a)[1]
+  X=cbind(rep(1,n), a$northing, a$easting)
+  eta=X%*%beta
+  return(exp(eta))    
+}
+
+K=1000
+n=length(a$count); mu.sima=matrix(NA,K,n)
+for (k in 1:K) {
+  lambda=rnorm(1,2,1) 
+  gamma=rnorm(2,0,0.1)             
+  beta = c(lambda,gamma)
+  mu.sim = mu(a,beta)
+  for (j in 1:n) {
+    mu.sima[k,j]=mu.sim[j]
+  }
+}
+hist(mu.sima)
+@
+
+We used simulation for our prior elicitation. We randomly choose $\beta$ from prior distribution and estimate the $\lambda$ of poisson distribution. A histogram shown in Figure 1 shows that most of simulated $\lambda$ were under 50, we also calculated the probability for $\lambda$ under 50, which is 0.95. So we believed our prior is reasonable.The posterior is then 
+\begin{equation}
+p(\beta |y)=\prod_{j=2,3}{\mathcal{L}(\beta;y)}N(\beta_1; 2,1)N(\beta_j; 0,0.1).
+\end{equation}
 
 \subsection{Data exploration}
 \begin{figure}[H]
@@ -47,21 +91,227 @@ a=read.table("/Users/xiaofeifei/Downloads/beetlelarva.txt")
 a$easting = as.numeric(a$easting)
 attach(a)
 
-library(ggplot2)
-
+require(ggplot2)
+ggplot(data = a, aes(x = easting, y = northing)) +
+  geom_tile(aes(fill = count))+
+  xlab("Easting")+ ylab("Northing")+
+  ggtitle("Heat map of Japanese beetle larvae")
 
 @
-  \caption{\textbf{Scatter plot: }{plot all exploratory variables respect to mortality .}}
+  \caption{\textbf{Heat map: }{Heat map of Japanese beetle larvae based on Easting and Northing direction.}}
 \end{figure}
-A scatter plot shown in Figure 1 in next page illustrates that the low(1,2,3) and high(6) level of dose have high mortality compared with middle(4,5) level of dose. Does level may has a quadratic relationship with mortality. Additionally, the mortality of male and female is different at same dose level. For dose level 1,2,5, and 6, females have a higher mortality. For 3 and 4, males have a higher mortality. The males and females have different changing rate of mortality under different dose levels. For variable standard, there is less difference in mortality with or without standard therapy.
+A heat map shown in Figure 1 illustrates that girds (8,6), (8,5) and (8,4) have a higher count value than the surrounding girds. Counting value of girds (1,1), (2,1), (2,2) is also higher than their surrounding girds. Overall, the two corners, top right and bottom left have a higher count value, and the center girds in the heat map have a smaller count value. We may consider that direction affects the number of bettle larvae in the field, but the effect are not strong and clear enoungh.  
+
+\begin{table}[!htb]
+    \caption{Sum of bettle larvae numbers by Northing and Easting}
+    \begin{subtable}{.5\linewidth}
+      \centering
+        \caption{Northing}
+        \begin{tabular}{rrr}
+          \hline
+         Northing & Sum \\ 
+          \hline
+           1 &  60 \\ 
+           2 &  55 \\ 
+           3 &  60 \\ 
+           4 &  70 \\ 
+           5 &  46 \\ 
+           6 &  69 \\ 
+           \hline
+        \end{tabular}
+    \end{subtable}%
+    \begin{subtable}{.5\linewidth}
+      \centering
+        \caption{Easting}
+        \begin{tabular}{rrr}
+        \hline
+       Easting & Sum \\ 
+        \hline
+      A &  48 \\ 
+      B &  56 \\ 
+      C &  44 \\ 
+      D &  34 \\ 
+      E &  25 \\ 
+      F &  35 \\ 
+      G &  45 \\ 
+      H &  73 \\ 
+         \hline
+      \end{tabular}
+    \end{subtable} 
+\end{table}
+
+Table 1 illustrates that the sum of bettle larvaes by Northing is kind of random, we didn't see any strong pattern from it. For the sum by Easting, we can see that A, B, G and H has a larger number. So the two ends of Easting direction have more bettle larvaes than the middel. We may considered that Easting will number of beetle larvae. Since we separately analysed the two dieractions without conserned the interaction, we also included Northing into our further analysis.
+
 \subsection{Modelling data}
+<<echo=FALSE>>=
+#log likelihood poisson GLM
+llk<-function(a,beta) {
+  return(sum(dpois(a$count,mu(a,beta),log = T)))
+} 
+
+
+# use prior normal mean = 0, sd = 1
+lpr<-function(beta) {
+  sum(log(dnorm(beta[2:3],0,0.1)), log(dnorm(beta[1],2,1)))
+}
+
+#MCMC setup
+
+#initialise 
+beta0=c(0,0,0)
+
+
+#MCMC loop - here "beta" is the current state of the Markov chain.
+#betap will be the proposed state
+
+MCMC<-function(K=10000,beta=c(0,0,0)) {
+  #returns K samples from posterior using MCMC
+  #no subsampling, start state goes in beta
+  
+  B=matrix(NA,K,3); LP=rep(NA,K)
+  #storage
+  
+  lp=llk(a,beta)+lpr(beta) 
+  #log posterior is log likelihood + log prior + constant
+  
+  for (k in 1:K) {
+    
+    #tuned RW MH - adjusted the step sizes so they were 
+    #unequal for beta[1] and beta[2] 
+    ##########################################
+    ## why use different step size for beta ##
+    ##########################################
+    betap=beta+0.5*c(0.5,0.3,0.1)*rnorm(3) #generate candidate
+    
+    lpp=llk(a,betap)+lpr(betap)        #calculate log post for candidate
+    
+    MHR=lpp-lp                         #"log(pi(y)/pi(x))" from lectures
+    
+    if (log(runif(1))<MHR) {           #Metropolis Hastings acceptance step
+      beta=betap                       #if we accept update the state
+      lp=lpp
+    }
+    
+    B[k,]=beta                         #save the sequence of MCMC states, our samples.
+    LP[k]=lp
+  }
+  return(list(B=B,L=LP))
+}
+
+#basic plotting
+K=10000
+Output=MCMC(K,beta=beta0); 
+B=Output$B
+LP=Output$L
+@
+
+\begin{figure}[H]
+\centering
+
+<<echo=FALSE, fig = TRUE, out.width='4in'>>=
+#check for initial transient and drop it
+
+par(mfrow=c(1,2)); plot(LP[1:500],type='l'); plot(LP[seq(0,K,10)]); 
+
+#initial transient done by 100 steps - drop this burn-in
+LP<-LP[00:K]
+B<-B[100:K,]
+@
+  \caption{\textbf{Scatter plot of log posterior: }\emph{Lift: }{scatter plot with line type.} \emph{Right: }{scatter plot with point type}}
+\end{figure}
+
+Because we do not start the chain in equilibrium, The samples in the first part of the chain are biased by the initialization. We need to drop first part of the MCMC run. The two scatter plots in Figure 2 shows that log posterior started converging at around XXXX, we will drop the first XXX steps.
+
+\begin{figure}[H]
+\centering
+<<echo=FALSE, fig = TRUE, out.width='4in'>>=
+beta1 = matrix(c(rep(1,3), rep(-1,3)),2,3, byrow = T)
+plot(density(LP), ylim = c(0,1)); 
+for (i in 1:2) {
+  LP.check=MCMC(K,beta=beta1[i,])$L[100:K]
+  lines(density(LP.check), col=i+1); 
+}
+@
+  \caption{\textbf{Kernel density plot of log posterior: }{Three different colors indicate different initial states for MCMC}}
+\end{figure}
+
+We drew density plot of three different initial states for MCMC, which use for convergence checking on MCMC sampler. From figure 2, the three different color lines did not different too much.
+
+\begin{figure}[H]
+\centering
+<<echo=FALSE, fig = TRUE, out.width='4in'>>=
+library(coda); 
+plot(as.mcmc(B))
+@
+  \caption{\textbf{Kernel density plot of log posterior: }{Three different colors indicate different initial states for MCMC}}
+\end{figure}
+
+<<echo=FALSE, fig = TRUE, out.width='4in'>>=
+HPDinterval(as.mcmc(B))
+effectiveSize(as.mcmc(B)) 
+@
+
 
 
 \subsection{Model selection}
 
 
-\subsection{Goodness of fit}
 
+
+
+\subsection{Goodness of fit}
+\begin{figure}[H]
+\centering
+<<echo=FALSE, fig = TRUE, out.width='4in'>>=
+n=length(a$count); y=matrix(NA,dim(B)[1],n)
+for (k in 1:(dim(B)[1])) {
+  mu.sim=mu(a,B[k,])
+  for (j in 1:n) {
+    y[k,j]=rpois(1,mu.sim[j])
+  }
+}
+
+bayes.beta = apply(B,2,mean)
+mu.sim=mu(a,bayes.beta)
+n=length(a$count); y=rep(NA,n)
+for (j in 1:n) {
+  y[j]=rpois(1,mu.sim[j])
+}
+ecdf<-(table(c(count)))/sum(table(count))
+
+ecdf.mc<-(table(c(y)))/sum(table(y))
+
+plot(ecdf.mc,type="h",lwd=5,xlab="number of bettle",
+     ylab=expression(paste("Pr(",italic(Y[i]==y[i]),")",sep="")),col="gray",
+     ylim=c(0,.35))
+points(ecdf,lwd=5,col="black",type="h")
+legend('topright',
+       legend=c("empirical distribution","predictive distribution"),
+       lwd=c(2,2),col=
+         c("black","gray"),bty="n",cex=.8)
+
+@
+  \caption{\textbf{Kernel density plot of log posterior: }{Three different colors indicate different initial states for MCMC}}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+<<echo=FALSE, fig = TRUE, out.width='4in'>>=
+n=length(a$count); y=rep(NA,n); ts=rep(NA,dim(B)[1])
+for (k in 1:(dim(B)[1])) {
+  mu.sim=mu(a,B[k,])
+  for (j in 1:n) {
+    y[j]=rpois(1,mu.sim[j])
+  }
+  ts[k]=mean(y)/var(y)
+}
+hist(ts,sqrt(dim(B)[1])); 
+bayes.beta = apply(B,2,mean)
+dv=mean(count)/var(count)
+abline(v=dv,col=2)
+@
+  \caption{\textbf{Kernel density plot of log posterior: }{Three different colors indicate different initial states for MCMC}}
+\end{figure}
 
 \subsection{Interpretation}
 
