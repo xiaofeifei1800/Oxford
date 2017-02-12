@@ -1,0 +1,250 @@
+\documentclass[12pt]{article}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{float}
+\usepackage{parskip}
+\usepackage{amsmath}
+\restylefloat{table}
+\usepackage{subcaption}
+\renewcommand\thesubfigure{\roman{subfigure}}
+\usepackage[a4paper, total={6in, 8in}]{geometry}
+
+
+\title{Bayes Methods, Assessed Practical}
+\author{Practical No. P049}
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+
+\maketitle
+\newpage
+
+\section{Introduction}
+
+Japanese beetle larvae is a common species of beetle. These insects damage plants by skeletonizing the foliage. An 18×8 foot area of field planted with maize were used to observe number of Japanese beetle larvae. It was split into 3×1 foot rectangles (so 48 rectangles in all). The plough ran down the columns, and the seeds were planted in sequence down the columns. The data records the n = 48 counts of Japanese beetle larvae found in the top foot of soil of each rectangle, and information about northing and easting.
+
+In this paper we applied baysian analysis to analyse how the Northing and Easting values of a rectangular plot influence the distribution of the number of beetle larvae. We firstly did prior elicitation to find a proper prior of our estimators, then followed with explanatory plots and tables of the data. Generalized linear model with poisson link function was used for modeling japanese beetle larvaes with northing and easting, we fited model with MCMC methods. We used bayes factors as our model selection methods, and we performed goodness of fit test to check the quality of the model and give interpretation of the results.
+
+
+\section{Methods}
+Scatter plots are used to give a basic exploration of the mortality with other variables. 
+Metropolis Hastings algorithm was used for performing Markov chain Monte Carlo (MCMC) method. Let $X_t = i$. $X_{t+1}$ is determined in the following way.
+\newline
+1. Draw j $\sim$ $q(\cdot\mid i)$ and u $\sim$ U$[0, 1]$.\hfill \break
+2. If u $\leq \alpha (j \mid i)$ where $\alpha (j \mid i)=\min \left(1,{\frac {P(x')}{P(x)}}{\frac {g(x|x')}{g(x'|x)}}\right)$\hfill \break
+set $X_{t+1} = j$, otherwise set $X_{t+1}$ = i.
+
+Trace plot and autocorrelation function are used to check MCMC convergence. Bayes factor was used for model selection. For Bayes factor, the plausibility of the two different models M1 and M2, parametrised by model parameter vectors ${\displaystyle \theta _{1}}  \theta_1  and {\displaystyle \theta _{2}} \theta _{2}$ is assessed by the Bayes factor B given by:
+\begin{equation}
+B_{1,2}={\frac  {\Pr(D|M_{1})}{\Pr(D|M_{2})}}={\frac  {\int \Pr(\theta _{1}|M_{1})\Pr(D|\theta _{1},M_{1})\,d\theta _{1}}{\int \Pr(\theta _{2}|M_{2})\Pr(D|\theta _{2},M_{2})\,d\theta _{2}}}.
+\end{equation}
+
+Goodness of fit methods are used to assess the quality of our final model. Empirical distribution function of data and predictive distribution, predictive distribution of the mean/variance ratio were used for posterior preditive check. 
+
+\section{Results}
+\subsection{Observation model}
+We considered Poisson distribution as the distribution of the response in each cell and applied generalized linear model of data. We treated our predictors as categorical variable. We had six different levels for northing and eight different levels for easting, so we totally have thirteen parameters to estimate. In order to fit generalized linear model of poisson data, a link function is required to connect linear predictor and the mean of the distribution function. We chose canonical link function of poisson distribution as our link function, which is 
+\begin{equation}
+\mu_{i,j} =g^{-1}({\eta_{i,j}})=\exp {(\eta_{i,j})}\,\! 
+\end{equation} 
+
+Our model is shown below:
+\begin{equation}
+\operatorname {E} (\mathbf {Y_{i,j}} )= {\mu }=g^{-1}( {\eta_{i,j} })
+\end{equation}
+\begin{equation}
+{\eta_{i,j} } = a + \alpha _i+\beta _j
+\end{equation}
+where 
+\begin{itemize}
+\item$a$ is constant which represent base level Northing 1, Easting A
+\item$i = 1,\cdots,5$ level of Northing
+\item$m = 1,\cdots,7$ level of Easting 
+\item${\mu_{i,j}}$ is the mean of poisson distribution
+\item$\boldsymbol {Y_{i,j}}$ is the observed values
+\item$g^{-1}$ is link function
+\end{itemize}
+
+
+\subsection{Prior elicitation}
+ This must be a fairly number, we might expected the number of bettle larvaes aournd 5 to 15. For the rest of parameters, since our hypothesis is how do the Northing and Easting values influence the distribution of the number of beetle larvae, we may assume that there is no effection casued by Northing and Easting. We would like the prior to have higher probability of zero, and sysmetric around zero, not favor to positive or negative number, so the prior of rest parameters could be normal or t distribution. Because of the log link function, the parameters can not be very large, since exp(5) is already 148, we need to choose a normal or t distribution that don't have a heavy tails.
+
+We took two different prior sets:
+
+\begin{equation}
+(1)\beta_{j} \sim N(0,1), \beta_1 \sim N(1,1) 
+\end{equation}
+
+\begin{equation}
+(2)\beta_{j} \sim t(10), \beta_1 \sim N(1,1)
+\end{equation}
+where
+$j = 2,\cdots 13$
+
+<<echo=FALSE, fig = TRUE, out.width='4in'>>=
+a=read.table("/Users/xiaofeifei/Downloads/beetlelarva.txt")
+a$easting = factor(a$easting)
+a$northing = factor(a$northing)
+attach(a)
+  
+mu<-function(a,beta) {
+  n=dim(a)[1]
+  X=model.matrix(~northing+easting,data = a)
+  eta=X%*%beta
+  return(exp(eta))    
+}
+
+K=1000
+n=length(a$count); mu.sima=matrix(NA,K,n)
+for (k in 1:K) {
+  lambda=rnorm(1,2,1) 
+  # gamma=rnorm(12,0,1)
+  gamma=rt(12,10)
+  beta = c(lambda,gamma)
+  mu.sim = mu(a,beta)
+  for (j in 1:n) {
+    mu.sima[k,j]=mu.sim[j]
+  }
+}
+plot(apply(mu.sima,2,mean))
+@
+
+We randomly choose $\beta$ from prior distribution and estimate the mean of poisson distribution to check if prior is reasonable. A scatter plot shown in Figure 1 shows that  the simulated means for each rectangle soil were under 50. So we believed our prior is reasonable.
+
+\begin{equation}
+p(\beta |y)=\prod_{j=2,3}{\mathcal{L}(\beta;y)}N(\beta_1; 2,1)N(\beta_j; 0,0.1).
+\end{equation}
+
+\subsection{Data exploration}
+\begin{figure}[H]
+\centering
+
+<<echo=FALSE, fig = TRUE, out.width='4in'>>=
+a=read.table("/Users/xiaofeifei/Downloads/beetlelarva.txt")
+a$easting = as.numeric(a$easting)
+attach(a)
+
+require(ggplot2)
+ggplot(data = a, aes(x = easting, y = northing)) +
+  geom_tile(aes(fill = count))+
+  xlab("Easting")+ ylab("Northing")+
+  ggtitle("Heat map of Japanese beetle larvae")
+
+@
+  \caption{\textbf{Heat map: }{Heat map of Japanese beetle larvae based on Easting and Northing direction.}}
+\end{figure}
+A heat map shown in Figure 1 illustrates that girds (8,6), (8,5) and (8,4) have a higher count value than the surrounding girds. Counting value of girds (1,1), (2,1), (2,2) is also higher than their surrounding girds. Overall, the two corners, top right and bottom left have a higher count value, and the center girds in the heat map have a smaller count value. We may consider that direction affects the number of bettle larvae in the field, but there is no strong and clear enoungh.  
+
+\begin{table}[!htb]
+    \caption{Sum of bettle larvae numbers by Northing and Easting}
+    \begin{subtable}{.5\linewidth}
+      \centering
+        \caption{Northing}
+        \begin{tabular}{rrr}
+          \hline
+         Northing & Sum \\ 
+          \hline
+           1 &  60 \\ 
+           2 &  55 \\ 
+           3 &  60 \\ 
+           4 &  70 \\ 
+           5 &  46 \\ 
+           6 &  69 \\ 
+           \hline
+        \end{tabular}
+    \end{subtable}%
+    \begin{subtable}{.5\linewidth}
+      \centering
+        \caption{Easting}
+        \begin{tabular}{rrr}
+        \hline
+       Easting & Sum \\ 
+        \hline
+      A &  48 \\ 
+      B &  56 \\ 
+      C &  44 \\ 
+      D &  34 \\ 
+      E &  25 \\ 
+      F &  35 \\ 
+      G &  45 \\ 
+      H &  73 \\ 
+         \hline
+      \end{tabular}
+    \end{subtable} 
+\end{table}
+
+Table 1 illustrates that the sum of bettle larvaes by Northing is kind of random, we didn't see any strong pattern from it. For the sum by Easting, we can see that A, B, G and H has a larger number. So the two ends of Easting direction have more bettle larvaes than the middel. We may considered that Easting will number of beetle larvae. Since we separately analysed the two dieractions without conserned the interaction, we also included Northing into our further analysis.
+
+\subsection{Modelling data}
+We used Metropolis Hastings algorithm to generate parameters of generalized linear model. 
+
+\begin{figure}[H]
+\centering
+
+
+  \caption{\textbf{Scatter plot of log posterior: }\emph{Lift: }{scatter plot with line type.} \emph{Right: }{scatter plot with point type}}
+\end{figure}
+
+There are several things need to be checked for the MCMC simulated data. First we would check initial transient. Because we did not start the chain in equilibrium, The samples in the first part of the chain were biased by the initialization. We needed to drop first part of the MCMC run. The right plot in Figure 2 shows that log posterior is converged. The left plot in Figure 2 shows log posterior started converging at before 100, we will drop the first 100 steps.
+
+\begin{figure}[H]
+\centering
+
+
+  \caption{\textbf{Kernel density plot of log posterior: }{Three different colors indicate different initial states for MCMC}}
+\end{figure}
+
+Second, we draw density plot of three different initial states for MCMC, which use for checking consistent on MCMC sampler. Figure 2 shows the three different color lines did not different too much, the MCMC results were consistent.
+
+\begin{figure}[H]
+\centering
+
+
+  \caption{\textbf{Kernel density plot of log posterior: }{Three different colors indicate different initial states for MCMC}}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+
+  \caption{\textbf{Kernel density plot of log posterior: }{Three different colors indicate different initial states for MCMC}}
+\end{figure}
+
+The third thing is checking convergence, we used trace plot and autocorrelation plot. We draw the simulated data of MCMC, it gave us a path of makov chain. When the iteration is large enough, the path won't show a strong trend or period, then we can believe it is converged.
+For Autocorrelation plot, if autocorrelation does not show decreasing, it indicates the data do not converge very well.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rr}
+  \hline
+ & temp \\ 
+  \hline
+(Intercept) & 225.08 \\ 
+  northing2 & 633.81 \\ 
+  northing3 & 593.02 \\ 
+  northing4 & 636.52 \\ 
+  northing5 & 545.23 \\ 
+  northing6 & 660.62 \\ 
+  eastingB & 532.22 \\ 
+  eastingC & 495.03 \\ 
+  eastingD & 408.44 \\ 
+  eastingE & 379.75 \\ 
+  eastingF & 427.03 \\ 
+  eastingG & 469.22 \\ 
+  eastingH & 556.08 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+\subsection{Modelling comparison}
+We suggested two different priors, and we used bayse factor to compare which prior is more suitable for data. Bayes factor is ${\frac  {\Pr(D|M_{1})}{\Pr(D|M_{2})}}$, but calculating ${\Pr(D|M)}$ is hard, the priors are not conjugate prior, it is hard to do the integral, we used Harmonic and Bridge to estimate bayes factor.
+
+
+p(y|m), The marginal likelihood p(y|b) ∝ t(βj/2.5; dof = 1)L(β; y).
+
+
+
+
+
+
+
+\end{document}
