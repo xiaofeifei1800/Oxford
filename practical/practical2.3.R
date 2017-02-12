@@ -1,5 +1,5 @@
 #load the data
-a=read.table("/Users/xiaofeifei/Downloads/beetlelarva.txt")
+a=read.table("P:/R Data/beetlelarva.txt")
 
 # change easting from factor to numerical data
 a$easting = as.numeric(a$easting)
@@ -7,8 +7,20 @@ attach(a)
 
 #carry out a brief but careful prior elicitation leading to one or more priors for the parameters
 #prior
-K=10000; psim=rep(0,K); for (k in 1:10000) {psim[k]=rpois(1,lambda=rgamma(1,2,1))}
-mean(psim>5)
+x=seq(min(count),max(count),length.out=100)
+N=5
+v=9
+b.prior=matrix(rnorm(3*N,0,v),N,3) #simulate prior
+for (k in 2:(dim(b.prior)[1])) {
+  mu.sim=mu(a,b.prior[k,])
+  for (j in 1:48) {
+    y[j]=rpois(1,mu.sim[j])
+  }
+  lines (density(y))
+}
+plot(x,y,type='l',xlim=c(min(count),max(count)),ylim=c(0,1),xlab='scale(temp)',ylab='failure probability',main=paste('Variance',v))
+for (k in 2:N) {if (b.prior[k,2]>0) {y=logit(b.prior[k,],x); lines(x,y);}} #plot failure probability functions
+
 # t (0,1), normal(0,1)
 
 # Fit your models using MCMC, ABC or any other scheme that leads to a
@@ -36,7 +48,7 @@ llk<-function(a,beta) {
 
 # use prior normal mean = 0, sd = 1
 lpr<-function(beta) {
-  sum(log(dnorm(beta)))
+  sum(log(dt(beta,1)))
 }
 
 #MCMC setup
@@ -62,9 +74,6 @@ MCMC<-function(K=10000,beta=c(0,0,0)) {
     
     #tuned RW MH - adjusted the step sizes so they were 
     #unequal for beta[1] and beta[2] 
-    ##########################################
-    ## why use different step size for beta ##
-    ##########################################
     betap=beta+0.5*c(0.5,0.3,0.1)*rnorm(3) #generate candidate
     
     lpp=llk(a,betap)+lpr(betap)        #calculate log post for candidate
@@ -89,9 +98,6 @@ B=Output$B
 LP=Output$L
 
 #check for initial transient and drop it
-#################################
-## how to select drop out point##
-#################################
 
 # pdf('ps1q4bi.pdf',9,3)
 par(mfrow=c(1,2)); plot(LP[1:200],type='l'); plot(LP[seq(100,K,10)]); 
@@ -186,8 +192,7 @@ x=seq(min(count),max(count),length.out=100)
 N=100
 v=9
 b.prior=matrix(rnorm(3*N,0,v),N,3) #simulate prior
-b.prior[,2] = abs(b.prior[,2])
-y=logit(b.prior[1,],x)
+
 plot(x,y,type='l',xlim=c(min(count),max(count)),ylim=c(0,1),xlab='scale(temp)',ylab='failure probability',main=paste('Variance',v))
 for (k in 2:N) {if (b.prior[k,2]>0) {y=logit(b.prior[k,],x); lines(x,y);}} #plot failure probability functions
 
