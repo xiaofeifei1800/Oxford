@@ -22,12 +22,8 @@ alpha_recursion = function(y, mu, A, mean, sd)
   
   for (j in 1:K) 
   {
-      if (y[1]>mean[j])
-      {
-        alpha[1,j] = pnorm(y[1],mean[j], sd[j], lower.tail = F)*sum(A[,j]* mu)
-      }else{
-        alpha[1,j] = pnorm(y[1],mean[j], sd[j])*sum(A[,j]* mu)
-      }
+        alpha[1,j] = dnorm(y[1],mean[j], sd[j])*sum(A[,j]* mu)
+
   }
   
   for (t in 2:T) 
@@ -42,15 +38,11 @@ alpha_recursion = function(y, mu, A, mean, sd)
       }
       max_x = which.max(pred_x)
       y[t] = rnorm(1,mean[max_x], sd[max_x])
+      assign("y", y, envir = .GlobalEnv) 
     }
     for (j in 1:K)
     {
-      if (y[t]>mean[j])
-      {
-        alpha[t,j] = pnorm(y[t],mean[j], sd[j], lower.tail = F)*sum(A[,j]* alpha[t-1,])
-      }else{
-        alpha[t,j] = pnorm(y[t],mean[j], sd[j])*sum(A[,j]* alpha[t-1,])
-      }
+        alpha[t,j] = dnorm(y[t],mean[j], sd[j])*sum(A[,j]* alpha[t-1,])
     }
   }
   return(alpha)
@@ -66,12 +58,7 @@ mu = c(1/3,1/3,1/3)
 a = alpha_recursion(y, mu, A, mean, sd)
 
 
-
-
-
-
-
-beta_recursion = function(y, mu, mean, sd)
+beta_recursion = function(y, mu, A, mean, sd)
 {
   K = length(mu)
   T = length(y)
@@ -85,15 +72,18 @@ beta_recursion = function(y, mu, mean, sd)
   {
     for (i in 1:K)
     {
-      beta[t-1,i] = sum(B[,y[t]]*A[i,]* beta[t,])
+      B = c(dnorm(y[t],mean[1], sd[1]),
+            dnorm(y[t],mean[2], sd[2]),
+            dnorm(y[t],mean[3], sd[3]))
+      beta[t-1,i] = sum(B*A[i,]* beta[t,])
     }
   }
   return(beta)
 }
+b = beta_recursion(y, mu, A, mean, sd)
 
-
-
-
+# smoothing
+smooth = a*b/apply(a*b, 1, sum)
 
 
 #
