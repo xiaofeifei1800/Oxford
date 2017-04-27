@@ -1,0 +1,155 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{float}
+\usepackage{parskip}
+\usepackage{amsmath}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\restylefloat{table}
+\usepackage{subcaption}
+\renewcommand\thesubfigure{\roman{subfigure}}
+\usepackage[a4paper, total={6in, 8in}]{geometry}
+
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
+
+\title{Statistical programing, Assessed Practical}
+\author{Practical No. P049}
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\maketitle
+\newpage
+
+\section{Introduction}
+
+L1 and L2 penalized estimation methods shrink the estimates of the regression
+coefficients towards zero relative to the maximum likelihood estimates. The
+purpose of this shrinkage is to prevent overfit arising due to either collinearity
+of the covariates or high-dimensionality. Although both methods are shrinkage
+methods, the effects of L1 and L2 penalization are quite different in practice.
+Applying an L2 penalty tends to result in all small but non-zero regression coefficients,
+whereas applying an L1 penalty tends to result in many regression
+coefficients shrunk exactly to zero and a few other regression coefficients with
+comparatively little shrinkage. Combining L1 and L2 penalties, which is called elastic net, tends to give a
+result in between, with fewer regression coefficients set to zero than in a pure L1
+setting, and more shrinkage of the other coefficients. In this paper we propose a naive greedy search algrithm
+to search the optimal values of tuning parameters() of elastic net. In section Methods, we define the elastic net, give the greedy search algrithm to find the optimal tuning parameters, and the implement of greedy search algrithm in more detial. In section Results, nki70 data are used to illustrate our algrithm
+
+\section{Methods}
+\subsection{Elastic Net}
+The amount of shrinkage
+is determined by tuning parameters λ1 and λ2. A value of zero always means
+no shrinkage (= maximum likelihood estimation) and a value of infinity means
+infinite shrinkage (= setting all regression coefficients to zero). For more details
+about the methods, please refer to the above-mentioned papers
+
+In the regression prediction setting, an accurate penalization method achieves good prediction performance through the bias-variance trade-off. The elastic net is a penalised linear regression model that combines an L1 penalty
+with an L2 penalty to produce regularised estimates of the regression coefficients β. In a
+frequentist setting, those estimates are computed by minimising the following penalised
+least squares problem:
+\begin{equation}
+ \hat{\beta} = \underset{\beta}{\operatorname{argmin}} (\| y-X \beta \|^2 + \lambda_2 \|\beta\|^2 + \lambda_1 \|\beta\|_1) 
+\end{equation}
+The elastic net estimator is a two-stage procedure: for each fixed lambda2 we first find the ridge regression coefficients, and then we do the lasso-type shrinkage alng the lasso coefficient solution paths. 
+
+\subsection{Cross-validation}
+Cross-validation can be used to assess the predictive quality of the penalized
+prediction model or to compare the predictive ability of different values of the
+tuning parameter.
+
+k-fold cross-validation
+In k-fold cross-validation, the original sample is randomly partitioned into k equal sized subsamples. Of the k subsamples, a single subsample is retained as the validation data for testing the model, and the remaining k − 1 subsamples are used as training data. The cross-validation process is then repeated k times (the folds), with each of the k subsamples used exactly once as the validation data. The k results from the folds can then be averaged to produce a single estimation. The advantage of this method over repeated random sub-sampling (see below) is that all observations are used for both training and validation, and each observation is used for validation exactly once. 10-fold cross-validation is commonly used,[6] but in general k remains an unfixed parameter.
+
+For example, setting k = 2 results in 2-fold cross-validation. In 2-fold cross-validation, we randomly shuffle the dataset into two sets d0 and d1, so that both sets are equal size (this is usually implemented by shuffling the data array and then splitting it in two). We then train on d0 and test on d1, followed by training on d1 and testing on d0.
+
+When k = n (the number of observations), the k-fold cross-validation is exactly the leave-one-out cross-validation.
+
+In stratified k-fold cross-validation, the folds are selected so that the mean response value is approximately equal in all the folds. In the case of a dichotomous classification, this means that each fold contains roughly the same proportions of the two types of class labels.
+
+
+First, you should analyse the computational (time) complexity of solving the penalised
+least squares problem for a given (λ1, λ2).
+For this practical I would also like you to implement in R a simple greedy grid search
+(also known as hill climbing) that performs the tuning according to the following algorithm.
+I suggest you to check that your implementation works using the nki70 data set
+included in penalized, with the molecular markers are explanatory variables and time
+as a response. Hint: it should take at most 1 minute to run from any sensible starting
+point, say λ1, λ2 ∈ [5, 50].
+
+
+algrithm
+\begin{algorithm}
+\caption{My algorithm}\label{euclid}
+\begin{algorithmic}[1]
+\Procedure{MyProcedure}{}
+\State $\textit{stringlen} \gets \text{length of }\textit{string}$
+\State $i \gets \textit{patlen}$
+\BState \emph{top}:
+\If {$i > \textit{stringlen}$} \Return false
+\EndIf
+\State $j \gets \textit{patlen}$
+\BState \emph{loop}:
+\If {$\textit{string}(i) = \textit{path}(j)$}
+\State $j \gets j-1$.
+\State $i \gets i-1$.
+\State \textbf{goto} \emph{loop}.
+\State \textbf{close};
+\EndIf
+\State $i \gets i+\max(\textit{delta}_1(\textit{string}(i)),\textit{delta}_2(j))$.
+\State \textbf{goto} \emph{top}.
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+A good implementation of the greedy grid search will also leverage the parallel package
+to speed up the tuning; you should discuss which parts can be executed in parallel,
+and which cannot, and provide an overview of various parallel implementation strategies
+beyond those you will implement in your code
+
+I would like you to discuss and motivate any other choices you made to
+implement the greedy grid search in R in terms of data structures (e.g. lists vs arrays,
+etc.) and in terms of code organisation
+
+
+
+\section{Result}
+Data
+This loads a data.frame with 144 breast cancer patients and 77 covariates.
+The first two covariates indicate the survival time and event status (time is in
+months), the next five are clinical covariates (diameter of the tumor, lymph node
+status, estrogen receptor status, grade of the tumor and age of the patients),
+and the other 70 are gene expression measurements of the 70 molecular markers.
+
+penalized:
+This short note explains the use of the penalized package. The package is designed
+for penalized estimation in generalized linear models.
+The supported models at this moment are linear regression, logistic regression
+and the Cox proportional hazards model, but others are likely to be included
+in the future. As to penalties, the package allows an L1 absolute value
+(“lasso”) penalty (Tibshirani, 1996, 1997), an L2 quadratic (“ridge”) penalty
+(Hoerl and Kennard, 1970; Le Cessie and van Houwelingen, 1992; Verweij and
+Van Houwelingen, 1994), or a combination of the two (the “naive elastic net”
+of Zou and Hastie, 2005). The package also includes facilities for likelihood
+cross-validation and for optimization of the tuning parameter.
+
+standardization
+If the covariates are not naturally on the same scale, it is advisable to standardize
+them. The function argument standardize (default: FALSE) standardizes the
+covariates to unit second central moment before applying penalization. This
+standardization makes sure that each covariate is affected more or less equally
+by the penalization.
+
+
+3.1 cross-validation
+The function cvl calculates the cross-validated log likelihood for fixed values of
+λ1 and λ2. The λ1 and λ2 penalties are tuning parameters for which optimal values can be chosen
+by, say, 10-fold cross-validation.
+
+molecular markers are explanatory variables and time as a response
+\section{Conclusions}
+
+\end{document}
