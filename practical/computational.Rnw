@@ -1,0 +1,57 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{float}
+\usepackage{parskip}
+\usepackage{amsmath}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\restylefloat{table}
+\usepackage{subcaption}
+\renewcommand\thesubfigure{\roman{subfigure}}
+\usepackage[a4paper, total={6in, 8in}]{geometry}
+
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
+
+\title{Statistical programing, Assessed Practical}
+\author{Practical No. P049}
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\maketitle
+\newpage
+
+\section{Introduction}
+Copy number variants (CNVs) are segments of DNA that are present in variable copy number relative
+to  the  reference  genome  for  that  organism;  for  example,  in  diploid  organisms,  such  as  humans,  we
+expect to find two homologous copies of any genomic region.  However, various genetic mechanisms
+can lead to the loss or gain of portions of DNA reducing or increasing the number of copies of genes
+with implications in many diseases.
+Using array CGH or SNP arrays, it is possible to detect changes in copy number along the genome
+at a high resolution.  These microarrays are spotted with probes designed to target and hybridise to
+specific regions of the genome.  The hybridisation intensity (the signal) is proportional to the number
+of copies of the targeted genomic region present in the sample allowing us to indirectly measure DNA
+copy number.
+The  objective  of  DNA  copy  number  analysis  is  then  to  segment  an  observed  sequence  signal  into
+homogenous regions of constant signal intensity and then to classify these segments.  In this practical,
+we will consider a subset of the data Coriell 05296 considered by Snijders et al.  (2001), and available
+in the R package
+DNAcopy.
+
+
+\section{Methods}
+α-forward and
+β-backward
+
+Smoothing
+
+
+\section{Result}
+
+
+
+
+\end{document}
