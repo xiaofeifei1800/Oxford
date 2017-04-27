@@ -8,12 +8,15 @@ library(doParallel)
 data("nki70")
 attach(nki70)
 
+lambda1_final = numeric()
+lambda2_final = numeric()
+cor = numeric()
 #Input: 
-lambda1 = 0
-lambda2 = 0
+lambda1 = 10
+lambda2 = 10
 stepping1 = 1
 stepping2 = 1
-epsilon = 0.01
+epsilon = 0.001
 
 ####################### DONT FORGET NORMALIZING ################
 ########
@@ -47,6 +50,7 @@ base_pred_cor = abs(mean(r))
 i = 0
 while(TRUE)
 {
+  
   i = i+1
   lambda11 = append(lambda1, c(lambda1+stepping1, lambda1-stepping1))
   lambda22 = append(lambda2, c(lambda2+stepping2, lambda2-stepping2))
@@ -75,7 +79,7 @@ while(TRUE)
   {
     lambda1 = as.numeric(all_models[which.max(predict_cor),][1,1])
     lambda2 = as.numeric(all_models[which.max(predict_cor),][1,2])
-    
+    base_pred_cor = max(predict_cor)
   }else{
     lambda1 = lambda1
     lambda2 = lambda2
@@ -93,4 +97,6 @@ while(TRUE)
   }
 }
 
-penalized
+lambda1_final = append(lambda1_final, lambda1)
+lambda2_final = append(lambda2_final, lambda2)
+cor = append(cor, base_pred_cor)
