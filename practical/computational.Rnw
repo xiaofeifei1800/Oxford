@@ -36,21 +36,68 @@ specific regions of the genome.  The hybridisation intensity (the signal) is pro
 of copies of the targeted genomic region present in the sample allowing us to indirectly measure DNA
 copy number.
 The  objective  of  DNA  copy  number  analysis  is  then  to  segment  an  observed  sequence  signal  into
-homogenous regions of constant signal intensity and then to classify these segments.  In this practical,
-we will consider a subset of the data Coriell 05296 considered by Snijders et al.  (2001), and available
-in the R package
-DNAcopy.
-
+homogenous regions of constant signal intensity and then to classify these segments.  
+To analyse and segment this dataset, we consider a three-state homogeneous hidden Markov model
+(X1, Y1, . . . , Xn, Yn) with state-space X = {1, 2, 3} where 1 corresponds to a normal copy number, 2
+to increased copy number, and 3 to reduced copy number.
+For the applications of interest, namely speech processing, both deterministic and stochastic signal models have had good succes. In this paper we will concern ourselves strictly with one type of stochastic signal model, namely the hidden Markov model(HMM). we will first review the theory of Markow chains and then extend the ideas to the class of hidden Markov models using several simple examples. We will then focus our attention on the three fundamental problems for HMM designm namely: the evalution of the probability(or likelihood) of a sequence of obervations given a specific HMM, the determination of a best sequence of model state. The organization of this paper is as follows. In Section 
 
 \section{Methods}
 α-forward and
-β-backward
+The forward algorithm, in the context of a hidden Markov model, is used to calculate a 'belief state': the probability of a state at a certain time, given the history of evidence. The process is also known as filtering. The forward algorithm is closely related to, but distinct from, the Viterbi algorithm
+this probability is written as {\displaystyle P(x_{t}|y_{1:t})} P(x_t | y_{1:t} ). Here {\displaystyle x(t)} x(t) is the hidden state which is abbreviated as {\displaystyle x_{t}} x_{t} and {\displaystyle y_{1:t}} y_{1:t} are the observations {\displaystyle 1} 1 to {\displaystyle t} t. A belief state can be calculated at each time step, but doing this does not, in a strict sense, produce the most likely state sequence, but rather the most likely state at each time step, given the previous history.
+\begin{equation}
+\alpha _{t}(x_{t})=p(x_{t},y_{{1:t}})=\sum _{{x_{{t-1}}}}p(x_{t},x_{{t-1}},y_{{1:t}})
+\end{equation}
 
+\begin{equation}
+\alpha _{t}(x_{t})=\sum _{{x_{{t-1}}}}p(y_{t}|x_{t},x_{{t-1}},y_{{1:t-1}})p(x_{t}|x_{{t-1}},y_{{1:t-1}})p(x_{{t-1}},y_{{1:t-1}})
+\end{equation}
+
+\begin{equation}
+\alpha _{t}(x_{t})=p(y_{t}|x_{t})\sum _{{x_{{t-1}}}}p(x_{t}|x_{{t-1}})\alpha _{{t-1}}(x_{{t-1}})
+\end{equation}
+
+β-backward
+This is similar to filtering but asks about the distribution of a latent variable somewhere in the middle of a sequence, i.e. to compute {\displaystyle P(x(k)\ |\ y(1),\dots ,y(t))} P(x(k)\ |\ y(1),\dots ,y(t)) for some {\displaystyle k<t} k<t. From the perspective described above, this can be thought of as the probability distribution over hidden states for a point in time k in the past, relative to time t.
+The forward-backward algorithm is an efficient method for computing the smoothed values for all hidden state variables.
 Smoothing
+The forward–backward algorithm is an inference algorithm for hidden Markov models which computes the posterior marginals of all hidden state variables given a sequence of observations/emissions {\displaystyle o_{1:t}:=o_{1},\dots ,o_{t}} o_{1:t}:=o_{1},\dots ,o_{t}, i.e. it computes, for all hidden state variables {\displaystyle X_{k}\in \{X_{1},\dots ,X_{t}\}} X_{k}\in \{X_{1},\dots ,X_{t}\}, the distribution {\displaystyle P(X_{k}\ |\ o_{1:t})} P(X_{k}\ |\ o_{1:t}). This inference task is usually called smoothing. The algorithm makes use of the principle of dynamic programming to compute efficiently the values that are required to obtain the posterior marginal distributions in two passes. The first pass goes forward in time while the second goes backward in time; hence the name forward–backward algorithm.
+The term forward–backward algorithm is also used to refer to any algorithm belonging to the general class of algorithms that operate on sequence models in a forward–backward manner. In this sense, the descriptions in the remainder of this article refer but to one specific instance of this class.
+
+EM algorithm
+A hidden Markov model describes the joint probability of a collection of "hidden" and observed discrete random variables. It relies on the assumption that the i-th hidden variable given the (i − 1)-th hidden variable is independent of previous hidden variables, and the current observation variables depend only on the current hidden state.
+The Baum–Welch algorithm uses the well known EM algorithm to find the maximum likelihood estimate of the parameters of a hidden Markov model given a set of observed feature vectors.
 
 
 \section{Result}
+In this practical,
+we will consider a subset of the data Coriell 05296 considered by Snijders et al.  (2001), and available
+in the R package DNAcopy.
+This document presents an overview of the DNAcopy package. This package is for analyzing
+array DNA copy number data, which is usually (but not always) called array Comparative
+Genomic Hybridization (array CGH) data (Pinkel et al., 1998; Snijders et al., 2001; Lucito
+et al., 2003). It implements our methodology for finding change-points in these data (Olshen
+et al., 2004), which are points after which the (log) test over reference ratios have changed
+location. Our model is that the change-points correspond to positions where the underlying
+DNA copy number has changed. Therefore, change-points can be used to identify regions
+of gained and lost copy number. We also provide a function for making relevant plots of
+these data.
+We selected a subset of the data set presented in Snijders et al. (2001). We are calling
+this data set coriell. The data correspond to two array CGH studies of fibroblast cell
+strains. In particular, we chose the studies GM05296 and GM13330. After selecting
+only the mapped data from chromosomes 1-22 and X, there are 2271 data points. There is
+accompanying spectral karyotype data (not included), which can serve as a gold standard.
 
+Using these functions, provide some analysis of the dataset using the hidden Markov model
+described above. In particular, to obtain a segmentation of the data, we suggest to consider the
+marginal maximum a posteriori (note that this is different from the maximum a posteriori given
+by the Viterbi algorithm), defined as
+
+Analyse the dataset using the hidden Markov model with this new emission pdf. Discuss any
+differences with the results obtained with the previous model.
+
+Propose some method in order to decide which of the model of exercise 1 or this model is best
 
 
 
