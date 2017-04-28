@@ -2,7 +2,7 @@ library(DNAcopy)
 data(coriell)
 y.all = coriell$Coriell.05296
 y = y.all[900:1500]
-plot(y)
+plot(y,xlab="Genome Index", ylab="Signal")
 
 # check NAs, total 30 NAs in y
 sum(is.na(y))
@@ -167,25 +167,25 @@ state1 = apply(smooth, 1, which.max)
 returns.hv = as.data.frame(y)
 returns.hv$HighVolatility = state
 
-plot(y)
+plot(y,xlab="Genome Index", ylab="Signal", col = state)
 ind = which(state==1)
 points(x = ind,y = rep(0,length(ind)), col='red', pch=15)
 
 ind = which(state==2)
-points(x = ind,y = rep(0.5,length(ind)), col='red', pch=15)
+points(x = ind,y = rep(0.5,length(ind)), col='green', pch=15)
 
 ind = which(state==3)
-points(x = ind,y = rep(-0.6,length(ind)), col='red', pch=15)
+points(x = ind,y = rep(-0.6,length(ind)), col='blue', pch=15)
 
-plot(y)
+plot(y,xlab="Genome Index", ylab="Signal", col = state)
 ind = which(state1==1)
 points(x = ind,y = rep(0,length(ind)), col='red', pch=15)
 
 ind = which(state1==2)
-points(x = ind,y = rep(0.5,length(ind)), col='red', pch=15)
+points(x = ind,y = rep(0.5,length(ind)), col='green', pch=15)
 
 ind = which(state1==3)
-points(x = ind,y = rep(-0.6,length(ind)), col='red', pch=15)
+points(x = ind,y = rep(-0.6,length(ind)), col='blue', pch=15)
 
 # qq
 qqnorm(y[state1==1], main="Low volatility")
@@ -229,4 +229,44 @@ for(i in 1:10)
     break
   }
 }
+
+#############################################################################
+
+A_inital = A = matrix(rep(0.5,9), nrow = 3, ncol = 3, byrow = T)
+mu = c(1/3,1/3,1/3)
+mean = c(0,0.5,-0.5)
+sd = c(0.05, 0.08,0.08)
+likelihood = 0
+for(i in 1:10)
+{
+  a = alpha_recursion(y, mu, A, mean, sd)
+  b = beta_recursion(y, mu, A, mean, sd)
+  
+  K = length(mu)
+  Time = length(y)
+  E = matrix(0,nrow = 3, ncol = 3)
+  for(i in 1:K)
+  {
+    for(j in 1:K)
+    {
+      for(t in 2:Time)
+      {
+        if (j == 1)
+        {
+          E[i,j] = E[i,j] + a[t-1,i]*(dt(y[t]/0.05,df = 4)/0.05)*A[i,j]*b[t,j]
+        }else{
+          E[i,j] = E[i,j] + a[t-1,i]*dnorm(y[t],mean[j], sd[j])*A[i,j]*b[t,j]
+        }
+      }
+    }
+  }
+  
+  A = E/apply(E, 1,sum)
+  likelihoodnew = sum(a[dim(a)[1],])
+  if (likelihoodnew<likelihood)
+  {
+    break
+  }
+}
+
 

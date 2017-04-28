@@ -12,10 +12,10 @@ lambda1_final = numeric()
 lambda2_final = numeric()
 cor = numeric()
 #Input: 
-lambda1 = 10
-lambda2 = 10
-stepping1 = 1
-stepping2 = 1
+lambda1 = 20
+lambda2 = 20
+stepping1 = 5
+stepping2 = 5
 epsilon = 0.001
 
 ####################### DONT FORGET NORMALIZING ################
@@ -48,6 +48,7 @@ base_pred_cor = abs(mean(r))
 
 # 2. (a) “neighbours" search 
 i = 0
+system.time({
 while(TRUE)
 {
   
@@ -61,6 +62,7 @@ while(TRUE)
   registerDoParallel(cl)
   
   trials <- 10
+ 
   r = foreach (k = 1:dim(all_models)[1]) %:%
   foreach(icount(trials), .combine=cbind, .packages=c('penalized')) %dopar% {
     
@@ -71,6 +73,7 @@ while(TRUE)
     cor(nki70$time, fit$predictions[,1])
     
   }
+  
   stopCluster(cl)
   
   predict_cor = abs(sapply(r, mean))
@@ -96,7 +99,71 @@ while(TRUE)
     stepping2 = lambda2/2
   }
 }
-
+})
 lambda1_final = append(lambda1_final, lambda1)
 lambda2_final = append(lambda2_final, lambda2)
 cor = append(cor, base_pred_cor)
+
+no_cores <- detectCores() - 1
+cl <- makeCluster(no_cores)
+registerDoParallel(cl)
+system.time({
+  foreach(i=1:3000) %dopar% sqrt(i)
+
+})
+
+stopCluster(cl)
+
+
+
+
+
+
+#######################################################################
+
+lambda1 = 10
+lambda2 = 10
+stepping1 = 1
+stepping2 = 1
+
+
+lambda11 = append(lambda1, c(lambda1+stepping1, lambda1-stepping1))
+lambda22 = append(lambda2, c(lambda2+stepping2, lambda2-stepping2))
+
+all_models = expand.grid(lambda11,lambda22)
+
+cl = makeCluster(4)
+clusterExport(cl, list("nki70"))
+clusterEvalQ(cl, library(penalized))
+
+all_results = numeric()
+system.time(
+  for(i in 1:9)
+  {
+    result = parLapply(cl, 1:10, parallel.xval,lambda1 = all_models[i,1],lambda2=all_models[i,2])
+    all_results[i]= mean(unlist(result))
+  }
+)
+stopCluster(cl)
+
+parallel.xval = function(data, lambda1, lambda2)
+{
+  fit=cvl(nki70$time, nki70[, 8:77], lambda1 = lambda1, lambda2 =lambda2, fold = 10,
+          model = "linear")
+  corr = cor(nki70$time, fit$predictions[,1])
+  return(corr)
+}
+
+
+##############################################################
+parLapply(cl,1:9, parallel.xval2, i = 9,parallel.xval)
+
+parallel.xval2 = function(x,i,funceval)
+{
+  require(parallel)
+  result = mclapply(1:i, funceval,lambda1 = all_models[i,1],lambda2=all_models[i,2])
+  all_results= mean(unlist(result))
+  return(all_results)
+}
+
+

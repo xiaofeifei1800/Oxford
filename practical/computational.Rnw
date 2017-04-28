@@ -16,36 +16,47 @@
 \def\BState{\State\hskip-\ALG@thistlm}
 \makeatother
 
-\title{Statistical programing, Assessed Practical}
+\title{Computational Statistical, Assessed Practical}
 \author{Practical No. P049}
 \begin{document}
-\SweaveOpts{concordance=TRUE}
+
 
 \maketitle
 \newpage
 
 \section{Introduction}
-Copy number variants (CNVs) are segments of DNA that are present in variable copy number relative
-to  the  reference  genome  for  that  organism;  for  example,  in  diploid  organisms,  such  as  humans,  we
-expect to find two homologous copies of any genomic region.  However, various genetic mechanisms
-can lead to the loss or gain of portions of DNA reducing or increasing the number of copies of genes
-with implications in many diseases.
-Using array CGH or SNP arrays, it is possible to detect changes in copy number along the genome
-at a high resolution.  These microarrays are spotted with probes designed to target and hybridise to
-specific regions of the genome.  The hybridisation intensity (the signal) is proportional to the number
-of copies of the targeted genomic region present in the sample allowing us to indirectly measure DNA
-copy number.
+Copy number variants (CNVs) are type of structural variation. There are two type of events of this variation, duplication or deletion that affect a considerable number of base pairs. However, there are no clear boundaries between the two groups and the classification depends on the nature of the loci of interest. The results of DNA reducing or increasing the number of copies of genes will cause in many diseases.
+Using array Comparative genomic hybridization (CGH), is a molecular cytogenetic method for analysing copy number variations (CNVs) relative to ploidy level in the DNA of a test sample compared to a reference sample. It is possible to detect changes in copy number with a high resolution. Because the hybridisation intensity is proportional to the number of copies of the targeted genomic region, based on the signal level, we can indirectly measure DNA copy number.
+In this paper we will concern ourselves strictly with one type of stochastic signal model, namely the hidden Markov model(HMM).  We will focus our attention on the three fundamental problems for HMM design: marginal maximum a posteriori of hidden states, the effects of different emission density functions, estimate transition matrix of hidden states. The organization of this paper is as follows. In Section Methods, we will give fundamental theory of HMM, the proof and pseudocode of forward-backward algorithm, Baum-Welch algorithm. In section Results, we used Coriell data for R package DNAcopy to illustrate our algorithm and give a brief analysis of Coriell data.
+
 The  objective  of  DNA  copy  number  analysis  is  then  to  segment  an  observed  sequence  signal  into
 homogenous regions of constant signal intensity and then to classify these segments.  
 To analyse and segment this dataset, we consider a three-state homogeneous hidden Markov model
 (X1, Y1, . . . , Xn, Yn) with state-space X = {1, 2, 3} where 1 corresponds to a normal copy number, 2
 to increased copy number, and 3 to reduced copy number.
-For the applications of interest, namely speech processing, both deterministic and stochastic signal models have had good succes. In this paper we will concern ourselves strictly with one type of stochastic signal model, namely the hidden Markov model(HMM). we will first review the theory of Markow chains and then extend the ideas to the class of hidden Markov models using several simple examples. We will then focus our attention on the three fundamental problems for HMM designm namely: the evalution of the probability(or likelihood) of a sequence of obervations given a specific HMM, the determination of a best sequence of model state. The organization of this paper is as follows. In Section 
+
 
 \section{Methods}
-α-forward and
+\subsection{Hidden Markov model}
+A hidden Markov model(HMM) is used to partition observations $y_1, y_2,...y_n$ made at locations $t_1,t_2,...t_n$ into K hidden states, where K << n. In the context of Coriell data, the observations are , the hidden states are . We can characterize a discrete HMM where the observations are continuous as follows:
+\begin{enumerate}
+\item The number of states, K, in the model. The states are denoted $S_1,...,S_k$ and the chain is assumed to be irreducible; $q_i$ denotes the actual state at position $i$ (1$\leq$i$\geq$ n).
+\item The initial state distribution, $\pi$, where $\pi_k$ = P($q_i$ = $S_k$).
+\item The transition matrix, A, giving the probability of moving from one state to another, where: 
+\begin{equation}
+a_lm = P(q_{i+1} = S_m|q_i = S_l)
+\end{equation}
+for 1 $\leq$ i $\geq$ n-1 and 1 $\leq$ l, m$\leq$K.
+\item The distribution, $b_k$ of .. in state $S_k$ is assumed to be Gaussian with unlnown mean and variance, i.e.
+\begin{equation}
+b_k ~ N(\mu_i, \sigma_i)
+\end{equation}
+where we allow the possibility the the variance terms are equal.
+\end{enumerate}
+
+\subsection{Forward-Backward algorithm}
 The forward algorithm, in the context of a hidden Markov model, is used to calculate a 'belief state': the probability of a state at a certain time, given the history of evidence. The process is also known as filtering. The forward algorithm is closely related to, but distinct from, the Viterbi algorithm
-this probability is written as {\displaystyle P(x_{t}|y_{1:t})} P(x_t | y_{1:t} ). Here {\displaystyle x(t)} x(t) is the hidden state which is abbreviated as {\displaystyle x_{t}} x_{t} and {\displaystyle y_{1:t}} y_{1:t} are the observations {\displaystyle 1} 1 to {\displaystyle t} t. A belief state can be calculated at each time step, but doing this does not, in a strict sense, produce the most likely state sequence, but rather the most likely state at each time step, given the previous history.
+this probability is written as $P(x_t|y_{1:t})$. Here x(t) is the hidden state which is abbreviated as $x_t$ and $y_{1:t}$ are the observations 1 to t. A belief state can be calculated at each time step, but doing this does not, in a strict sense, produce the most likely state sequence, but rather the most likely state at each time step, given the previous history. The forward algorithm takes advantage of the conditional independence rules of the hidden Markov model (HMM) to perform the calculation recursively.
 \begin{equation}
 \alpha _{t}(x_{t})=p(x_{t},y_{{1:t}})=\sum _{{x_{{t-1}}}}p(x_{t},x_{{t-1}},y_{{1:t}})
 \end{equation}
@@ -58,36 +69,135 @@ this probability is written as {\displaystyle P(x_{t}|y_{1:t})} P(x_t | y_{1:t} 
 \alpha _{t}(x_{t})=p(y_{t}|x_{t})\sum _{{x_{{t-1}}}}p(x_{t}|x_{{t-1}})\alpha _{{t-1}}(x_{{t-1}})
 \end{equation}
 
-β-backward
-This is similar to filtering but asks about the distribution of a latent variable somewhere in the middle of a sequence, i.e. to compute {\displaystyle P(x(k)\ |\ y(1),\dots ,y(t))} P(x(k)\ |\ y(1),\dots ,y(t)) for some {\displaystyle k<t} k<t. From the perspective described above, this can be thought of as the probability distribution over hidden states for a point in time k in the past, relative to time t.
-The forward-backward algorithm is an efficient method for computing the smoothed values for all hidden state variables.
-Smoothing
-The forward–backward algorithm is an inference algorithm for hidden Markov models which computes the posterior marginals of all hidden state variables given a sequence of observations/emissions {\displaystyle o_{1:t}:=o_{1},\dots ,o_{t}} o_{1:t}:=o_{1},\dots ,o_{t}, i.e. it computes, for all hidden state variables {\displaystyle X_{k}\in \{X_{1},\dots ,X_{t}\}} X_{k}\in \{X_{1},\dots ,X_{t}\}, the distribution {\displaystyle P(X_{k}\ |\ o_{1:t})} P(X_{k}\ |\ o_{1:t}). This inference task is usually called smoothing. The algorithm makes use of the principle of dynamic programming to compute efficiently the values that are required to obtain the posterior marginal distributions in two passes. The first pass goes forward in time while the second goes backward in time; hence the name forward–backward algorithm.
+A similar procedure can be constructed to find backward probabilities. These intend to provide the probabilities $P(x_t|y_{t+1:T})$
+
+\begin{equation}
+\beta _{t-1}(x_{t-1})=p(y_{{t:T}}|x_{t-1})=\sum _{{x_{{t}}}}p(x_{t},y_{{1:t}}|x_{{t-1}})
+\end{equation}
+
+\begin{equation}
+\beta _{t-1}(x_{t-1})=\sum _{{x_{{t}}}}p(y_{t}|x_{t},x_{{t-1}},y_{{t+1:T}})p(x_{t}|x_{{t-1}})p(y_{{t+1:T}}|x_{{t}}, x_{{t-1}})
+\end{equation}
+
+\begin{equation}
+\beta _{t-1}(x_{t-1})=\sum _{{x_{{t}}}}p(y_{t}|x_{t})p(x_{t}|x_{{t-1}})\beta _{{t}}(x_{{t}})
+\end{equation}
+
+The forward–backward algorithm is an inference algorithm for hidden Markov models which computes the posterior marginals of all hidden state variables given a sequence of observations/emissions $o_1:t$ = $o_1$,...,$o_t$, i.e. it computes, for all hidden state variables $X_k$ $\in$ \{$X_1$,...$X_t$ \}, the distribution P($X_k$|$o_{1:t}$). This inference task is usually called smoothing. The algorithm makes use of the principle of dynamic programming to compute efficiently the values that are required to obtain the posterior marginal distributions in two passes. The first pass goes forward in time while the second goes backward in time; hence the name forward–backward algorithm.
 The term forward–backward algorithm is also used to refer to any algorithm belonging to the general class of algorithms that operate on sequence models in a forward–backward manner. In this sense, the descriptions in the remainder of this article refer but to one specific instance of this class.
+
+\begin{equation}
+p(x_t|y_{1:T}) = \frac{p(x_t,y_{1:T})}{p(y_{1:T})}=\frac{\alpha_t(x_t)\beta_t(x_t)}{\sum _{{x}}\alpha_t(x)\beta_t(x)}
+\end{equation}
 
 EM algorithm
 A hidden Markov model describes the joint probability of a collection of "hidden" and observed discrete random variables. It relies on the assumption that the i-th hidden variable given the (i − 1)-th hidden variable is independent of previous hidden variables, and the current observation variables depend only on the current hidden state.
 The Baum–Welch algorithm uses the well known EM algorithm to find the maximum likelihood estimate of the parameters of a hidden Markov model given a set of observed feature vectors.
+For each iteration k
+\newline
+\qquad E-step:
+\begin{equation}
+Q(A^{(t)};A^{(t-1)})=\mathbb{E}[\log p(X_{0:T},y_{1:T};A^{(t)})|y_{1:T},A^{(t-1)}]
+\end{equation}
 
+{M-step}: 
+\begin{equation}
+A^{(t)}=\arg\max_{A}Q(A^{(t)};A^{(t-1)})$$ $$A_{i,j}^{(t)} =\arg\max_{A}\mathbb{E}[N_{i,j}|y_{1:T},A^{(t-1)}]\log A_{i,j} = \frac{\mathbb{E}[N_{i,j}|y_{1:T},A^{(t-1)}]}{\sum_{l}\mathbb{E}[N_{i,l}|y_{1:T},A^{(t-1)}]}
+\end{equation}
+
+The Q function of the EM is thus expressed as
+\begin{equation}
+Q(A^{(t)};A^{(t-1)})= \sum_{i,j}\mathbb{E}[N_{i,j}|y_{1:T},A^{(t-1)}]\log A_{i,j} + C 
+\end{equation}
+\begin{equation}
+N_{i,j}=\sum_{t=1}^TI(X_t=j,X_{t-1}=i), \{i,j\in k:=1,2,3\}
+\end{equation}
+
+\begin{equation}
+\mathbb{E}[N_{i,j}|y_{1:T},A^{(t-1)}]=\sum_{t=1}^T\mathbb{P}(X_t=j,X_{t-1}=i|y_{1:T},A^{(t-1)})
+\end{equation}
+
+The terms$\mathbb{P}(x_t,x_{t-1}|y_{1:T},A^{(*)})$ can be obtained from the forward-backward recursion, as:
+\begin{equation}
+p(x_t=j,x_{t-1}=i|y_{1:T},A^{(t-1)})\propto \alpha_{t-1}(x_{t-1})g_{x_t}(y_t)A^{(t-1)}_{x_{t-1},x_t}\beta_t(x_t)
+\end{equation}
+
+{M-step}: 
+\begin{equation}
+A^{(t)}=\arg\max_{A}Q(A^{(t)};A^{(t-1)})$$ $$A_{i,j}^{(t)} =\arg\max_{A}\mathbb{E}[N_{i,j}|y_{1:T},A^{(t-1)}]\log A_{i,j} = \frac{\mathbb{E}[N_{i,j}|y_{1:T},A^{(t-1)}]}{\sum_{l}\mathbb{E}[N_{i,l}|y_{1:T},A^{(t-1)}]}
+\end{equation}
 
 \section{Result}
-In this practical,
-we will consider a subset of the data Coriell 05296 considered by Snijders et al.  (2001), and available
-in the R package DNAcopy.
+In this practical, we will consider a subset of the data Coriell 05296, and available in the R package DNAcopy.
 This document presents an overview of the DNAcopy package. This package is for analyzing
 array DNA copy number data, which is usually (but not always) called array Comparative
-Genomic Hybridization (array CGH) data (Pinkel et al., 1998; Snijders et al., 2001; Lucito
-et al., 2003). It implements our methodology for finding change-points in these data (Olshen
+Genomic Hybridization. It implements our methodology for finding change-points in these data (Olshen
 et al., 2004), which are points after which the (log) test over reference ratios have changed
 location. Our model is that the change-points correspond to positions where the underlying
 DNA copy number has changed. Therefore, change-points can be used to identify regions
-of gained and lost copy number. We also provide a function for making relevant plots of
-these data.
+of gained and lost copy number. 
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=4.81in, height=4.16in]{y_data.pdf}
+  \caption{\textbf{Scatter plot of simulated beetle number: }\emph{Lift: }{simulated beetle number under t distribution.} \emph{Right: }{simulated beetle number under normal distribution}}
+\end{figure}
+
 We selected a subset of the data set presented in Snijders et al. (2001). We are calling
 this data set coriell. The data correspond to two array CGH studies of fibroblast cell
-strains. In particular, we chose the studies GM05296 and GM13330. After selecting
+strains. In particular, we chose the studies GM05296. After selecting
 only the mapped data from chromosomes 1-22 and X, there are 2271 data points. There is
 accompanying spectral karyotype data (not included), which can serve as a gold standard.
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=4.81in, height=4.16in]{with_n.pdf}
+  \caption{\textbf{Scatter plot of simulated beetle number: }\emph{Lift: }{simulated beetle number under t distribution.} \emph{Right: }{simulated beetle number under normal distribution}}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=4.81in, height=4.16in]{with_t.pdf}
+  \caption{\textbf{Scatter plot of simulated beetle number: }\emph{Lift: }{simulated beetle number under t distribution.} \emph{Right: }{simulated beetle number under normal distribution}}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=4.81in, height=4.16in]{y_dis.pdf}
+  \caption{\textbf{Scatter plot of simulated beetle number: }\emph{Lift: }{simulated beetle number under t distribution.} \emph{Right: }{simulated beetle number under normal distribution}}
+\end{figure}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrr}
+  \hline
+ & 1 & 2 & 3 \\ 
+  \hline
+1 & 0.99 & 0.00 & 0.00 \\ 
+  2 & 0.02 & 0.98 & 0.00 \\ 
+  3 & 0.13 & 0.00 & 0.87 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+likelihood = 1.23368e+234
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrr}
+  \hline
+ & 1 & 2 & 3 \\ 
+  \hline
+1 & 1.00 & 0.00 & 0.00 \\ 
+  2 & 0.02 & 0.98 & 0.00 \\ 
+  3 & 0.07 & 0.00 & 0.93 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+likelihood = 8.342183e+279
 
 Using these functions, provide some analysis of the dataset using the hidden Markov model
 described above. In particular, to obtain a segmentation of the data, we suggest to consider the
@@ -98,6 +208,7 @@ Analyse the dataset using the hidden Markov model with this new emission pdf. Di
 differences with the results obtained with the previous model.
 
 Propose some method in order to decide which of the model of exercise 1 or this model is best
+
 
 
 
