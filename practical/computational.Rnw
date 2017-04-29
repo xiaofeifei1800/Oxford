@@ -129,39 +129,75 @@ A^{(t)}=\arg\max_{A}Q(A^{(t)};A^{(t-1)})$$ $$A_{i,j}^{(t)} =\arg\max_{A}\mathbb{
 
 \section{Result}
 In this practical, we will consider a subset of the data Coriell 05296, and available in the R package DNAcopy.
-This document presents an overview of the DNAcopy package. This package is for analyzing
-array DNA copy number data, which is usually (but not always) called array Comparative
-Genomic Hybridization. It implements our methodology for finding change-points in these data (Olshen
-et al., 2004), which are points after which the (log) test over reference ratios have changed
-location. Our model is that the change-points correspond to positions where the underlying
-DNA copy number has changed. Therefore, change-points can be used to identify regions
-of gained and lost copy number. 
+Coriell is array DNA copy number data, which is usually (but not always) called array Comparative
+Genomic Hybridization. It implements our methodology for finding change-points in these data, which are points after 
+which the (log) test over reference ratios have changed location. Our model is that the change-points correspond to positions where the underlying
+DNA copy number has changed. Therefore, change-points can be used to identify regions of gained and lost copy number. In particular, we chose the studies GM05296. After selecting only the mapped data from chromosomes 1-22 and X, there are 2271 data points. And we only focus on data points between 900 to 1500
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=4.81in, height=4.16in]{y_data.pdf}
-  \caption{\textbf{Scatter plot of simulated beetle number: }\emph{Lift: }{simulated beetle number under t distribution.} \emph{Right: }{simulated beetle number under normal distribution}}
+  \caption{\textbf{Scatter plot of subset of Coriell 05296 CGH: }{this plot shows three segmentation of the CGH signal, one is around 0 level, one is around 0.5 level and another one is around -0.5 level}}
 \end{figure}
 
-We selected a subset of the data set presented in Snijders et al. (2001). We are calling
-this data set coriell. The data correspond to two array CGH studies of fibroblast cell
-strains. In particular, we chose the studies GM05296. After selecting
-only the mapped data from chromosomes 1-22 and X, there are 2271 data points. There is
-accompanying spectral karyotype data (not included), which can serve as a gold standard.
+A Scatter plot shown in Figure 1 illustrates that most of the points are around 0 level with a little variation, but some points are separated. One group of the points have larger values than 0 and another group have negative valuess. From Figure 1 the data points can roughly be segmate into three parts, which is 0 level, 0.5 level and -0.5 level. We can assume that 0 level is the DNA without any copy number changing, but 0.5 level and -0.5 level are increase and decrease the DNA copy number. One thing we should pay attention was there is a potential outlier between Genome Index 0 to 100. There is no obvious segmentation around this point, and its value is smaller than any points. one thing we could do is to detect and remove this point before running a segmentation method, but in this paper we chose to model those outliers within the HMM framework.
 
+Also notised that this data set has missing values. It is hard to say the missing values were due to nature of DNA structure or human recorded error, so we used forward prediction to estimated the missing values. 
+\begin{equation}
+p(x_{t+1}|x_t,y_{1:t})=p(x_{t+1}|x_t)*p(x_t|y{1:t})
+x_{t+1} = 
+y_{t+1} = N(m_{x_{t+1}}, \sigma_{x_{t+1}}^2)
+\end{equation}
+We selected the state with the largest probability as our estimated hidden state, and use emission density to simulate observed value.
+
+To analyse and segment this dataset, we consider a three-state homogeneous hidden Markov model
+(X1, Y1, . . . , Xn, Yn) with state-space X = {1, 2, 3} where 1 corresponds to a normal copy number, 2
+to increased copy number, and 3 to reduced copy number, and observation space Y = R.
+
+We started with the emission density is:
+\begin{equation}
+g_1(y) = N(y;m_1,\sigma_1^2)
+g_1(y) = N(y;m_2,\sigma_2^2)
+g_1(y) = N(y;m_3,\sigma_3^2)
+\end{equation}
+where m1 = 0, m2 = 0.5, m3 = −0.5 and σ1 = 0.05 and σ2 = σ3 = 0.08. We also define the state transition
+probabilities as
+\begin{equation}
+
+\end{equation}
+and uniform initial probability mass function.
+
+Instead of using maximum a posteriori given by the Viterbi algorithm, we used marginal maximum a posteriori to obtain a segmentation of data.
+\begin{equation}
+\hat{x_t} = Pr(X_t = k|y_{1_n})
+\end{equation}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=4.81in, height=4.16in]{with_n.pdf}
   \caption{\textbf{Scatter plot of simulated beetle number: }\emph{Lift: }{simulated beetle number under t distribution.} \emph{Right: }{simulated beetle number under normal distribution}}
 \end{figure}
+Figure 2 shows the result of the HMM segmentation. 
 
+Since we know there is an outlier, we consider now that the emission density for the class 1 is given as
+\begin{equation}
+g_1(y) = t(y;m_1,\sigma_1,v_1)
+\end{equation}
+where m1 = 0, σ1 = 0.05, ν1 = 4 and t(y; m, σ, ν) denotes the probability density function of the
+non-standardized t distribution of parameters (m, \sigma, \mu), evaluated at x
+\begin{equation}
+
+\end{equation}
+The t distribution has heavier tails than the normal distribution, and can therefore capture outliers.
+The rest of the model specifications remain the same as in section 1
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=4.81in, height=4.16in]{with_t.pdf}
   \caption{\textbf{Scatter plot of simulated beetle number: }\emph{Lift: }{simulated beetle number under t distribution.} \emph{Right: }{simulated beetle number under normal distribution}}
 \end{figure}
+Figure 3 shows the result of the HMM segmentation. 
+
 
 \begin{figure}[H]
 \centering
@@ -199,10 +235,7 @@ likelihood = 1.23368e+234
 
 likelihood = 8.342183e+279
 
-Using these functions, provide some analysis of the dataset using the hidden Markov model
-described above. In particular, to obtain a segmentation of the data, we suggest to consider the
-marginal maximum a posteriori (note that this is different from the maximum a posteriori given
-by the Viterbi algorithm), defined as
+
 
 Analyse the dataset using the hidden Markov model with this new emission pdf. Discuss any
 differences with the results obtained with the previous model.
