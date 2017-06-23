@@ -28,10 +28,10 @@ def create_feature_map(features):
 train1 = pd.read_csv("/Users/xiaofeifei/I/Oxford/Dissertation/sub_g_data.csv")
 train1 = train1.fillna(0)
 
-# main_sub = ["CEREAL", 'YOG', '311', '310', 'XBISC', 'LAY013', 'LAY083', 'DAY-SWEETS',
-#              'ICREAM', '335', '338', '390', '396', '45']
+main_sub = ["CEREAL", 'YOG', '311', '310', 'XBISC', 'LAY013', 'LAY083', 'DAY-SWEETS',
+             'ICREAM', '335', '338', '390', '396', '45']
 
-main_sub = ["CEREAL"]
+# main_sub = ["CEREAL"]
 
 result1 = {}
 result2 = {}
@@ -95,7 +95,7 @@ for sub in main_sub:
 
     for i in xrange(20):
         print i
-        X_train, X_valid, y_train, y_valid = train_test_split(clean_train_reviews, train["Sugars per 100g"], test_size=0.2, random_state=i)
+        X_train, X_valid, y_train, y_valid = train_test_split(clean_train_reviews, train["Sugars"], test_size=0.2, random_state=i)
         # Initialize the "CountVectorizer" object, which is scikit-learn's
         # bag of words tool.
 
@@ -105,6 +105,17 @@ for sub in main_sub:
         train2 = train2.reset_index(drop=True)
         test2 = test2.reset_index(drop=True)
 
+        train2 = train2.join(train2.groupby('MicroDeptCode')['Sugars'].mean(), on='MicroDeptCode', rsuffix='_mean')
+        test2 = test2.join(train2.groupby('MicroDeptCode')['Sugars'].mean(), on='MicroDeptCode', rsuffix='_mean')
+
+        train2 = train2.join(train2.groupby('MicroDeptCode')['Sugars'].var(), on='MicroDeptCode', rsuffix='_var')
+        test2 = test2.join(train2.groupby('MicroDeptCode')['Sugars'].var(), on='MicroDeptCode', rsuffix='_var')
+
+        train2 = train2.join(train2.groupby('MicroDeptCode')['Sugars'].min(), on='MicroDeptCode', rsuffix='_min')
+        test2 = test2.join(train2.groupby('MicroDeptCode')['Sugars'].min(), on='MicroDeptCode', rsuffix='_min')
+
+        train2 = train2.join(train2.groupby('MicroDeptCode')['Sugars'].max(), on='MicroDeptCode', rsuffix='_max')
+        test2 = test2.join(train2.groupby('MicroDeptCode')['Sugars'].max(), on='MicroDeptCode', rsuffix='_max')
         vectorizer = TfidfVectorizer(analyzer = "word", tokenizer = None, preprocessor = None, stop_words = None,
                                      ngram_range=(1,2), max_features=100)
 
@@ -146,10 +157,13 @@ for sub in main_sub:
 
 
 
-        train_data_features = pd.concat([train_data_features, train2[["mean", "min", "max", "var", "freq", "SkuCode"]]], axis=1)
-        test_data_features = pd.concat([test_data_features, test2[["mean", "min", "max", "var", "freq", "SkuCode"]]], axis=1)
+        train_data_features = pd.concat([train_data_features, train2[[ "Sugars_mean", "Sugars_min","Sugars_max",
+                                                                       "Sugars_var","SkuCode"]]], axis=1)
+        test_data_features = pd.concat([test_data_features, test2[["Sugars_mean", "Sugars_min","Sugars_max", "Sugars_var",
+                                                                   "SkuCode"]]], axis=1)
 
         feature_names = list(train_data_features.columns.values)
+
         create_feature_map(feature_names)
 
         dtrain = xgb.DMatrix(data =train_data_features, label = y_train)
@@ -162,7 +176,7 @@ for sub in main_sub:
                 "eval_metric": "rmse",
                 "objective": "reg:linear",
                 "nthread" : 6,
-                "base_score" : np.mean(y_train["Sugars per 100g"]),
+                "base_score" : np.mean(y_train["Sugars"]),
                 "early_stopping_rounds": 10,
                 'silent': 1
         }
@@ -173,13 +187,13 @@ for sub in main_sub:
         mse = mean_squared_error(y_valid,pred)
         model2.append(mse)
 
-        mse = mean_squared_error(y_valid, np.repeat(np.mean(y_train["Sugars per 100g"]),y_valid.shape[0]))
+        mse = mean_squared_error(y_valid, np.repeat(np.mean(y_train["Sugars"]),y_valid.shape[0]))
         model1.append(mse)
 
-        micro_train = train.ix[list(y_train.index),["MicroDeptCode", "Sugars per 100g"]]
-        micro_test = train.ix[list(y_valid.index),["MicroDeptCode", "Sugars per 100g"]]
+        micro_train = train.ix[list(y_train.index),["MicroDeptCode", "Sugars"]]
+        micro_test = train.ix[list(y_valid.index),["MicroDeptCode", "Sugars"]]
 
-        micro_mean =  micro_train.groupby(["MicroDeptCode"])["Sugars per 100g"].mean()
+        micro_mean =  micro_train.groupby(["MicroDeptCode"])["Sugars"].mean()
 
         micro_mean = pd.DataFrame(micro_mean)
         micro_mean.columns = ["micro_pred"]
@@ -206,7 +220,7 @@ for sub in main_sub:
     result3[sub]=np.mean(model3)
 
 
-    print("Features importances...")
+
     importance = model.get_fscore(fmap='xgb.fmap')
     importance = sorted(importance.items(), key=operator.itemgetter(1))
     ft = pd.DataFrame(importance, columns=['feature', 'fscore'])
