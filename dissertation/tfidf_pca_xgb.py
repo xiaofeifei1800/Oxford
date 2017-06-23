@@ -94,7 +94,7 @@ for sub in main_sub:
     model3 = []
 
     for i in xrange(20):
-        print i
+
         X_train, X_valid, y_train, y_valid = train_test_split(clean_train_reviews, train["Sugars"], test_size=0.2, random_state=i)
         # Initialize the "CountVectorizer" object, which is scikit-learn's
         # bag of words tool.
@@ -119,6 +119,41 @@ for sub in main_sub:
         vectorizer = TfidfVectorizer(analyzer = "word", tokenizer = None, preprocessor = None, stop_words = None,
                                      ngram_range=(1,2), max_features=100)
 
+        # two way inter
+        train2 = train2.join(train2.groupby(['code1',"code2"])['Sugars'].mean(), on=['code1',"code2"], rsuffix='_mean12')
+        train2 = train2.join(train2.groupby(['code1',"code3"])['Sugars'].mean(), on=['code1',"code3"], rsuffix='_mean13')
+        train2 = train2.join(train2.groupby(['code2',"code3"])['Sugars'].mean(), on=['code2',"code3"], rsuffix='_mean23')
+
+        test2 = test2.join(train2.groupby(['code1',"code2"])['Sugars'].mean(), on=['code1',"code2"], rsuffix='_mean12')
+        test2 = test2.join(train2.groupby(['code1',"code3"])['Sugars'].mean(), on=['code1',"code3"], rsuffix='_mean13')
+        test2 = test2.join(train2.groupby(['code2',"code3"])['Sugars'].mean(), on=['code2',"code3"], rsuffix='_mean23')
+
+        train2 = train2.join(train2.groupby(['code1',"code2"])['Sugars'].var(), on=['code1',"code2"], rsuffix='_var12')
+        train2 = train2.join(train2.groupby(['code1',"code3"])['Sugars'].var(), on=['code1',"code3"], rsuffix='_var13')
+        train2 = train2.join(train2.groupby(['code2',"code3"])['Sugars'].var(), on=['code2',"code3"], rsuffix='_var23')
+
+        test2 = test2.join(train2.groupby(['code1',"code2"])['Sugars'].var(), on=['code1',"code2"], rsuffix='_var12')
+        test2 = test2.join(train2.groupby(['code1',"code3"])['Sugars'].var(), on=['code1',"code3"], rsuffix='_var13')
+        test2 = test2.join(train2.groupby(['code2',"code3"])['Sugars'].var(), on=['code2',"code3"], rsuffix='_var23')
+
+        train2 = train2.join(train2.groupby(['code1',"code2"])['Sugars'].min(), on=['code1',"code2"], rsuffix='_min12')
+        train2 = train2.join(train2.groupby(['code1',"code3"])['Sugars'].min(), on=['code1',"code3"], rsuffix='_min13')
+        train2 = train2.join(train2.groupby(['code2',"code3"])['Sugars'].min(), on=['code2',"code3"], rsuffix='_min23')
+
+        test2 = test2.join(train2.groupby(['code1',"code2"])['Sugars'].min(), on=['code1',"code2"], rsuffix='_min12')
+        test2 = test2.join(train2.groupby(['code1',"code3"])['Sugars'].min(), on=['code1',"code3"], rsuffix='_min13')
+        test2 = test2.join(train2.groupby(['code2',"code3"])['Sugars'].min(), on=['code2',"code3"], rsuffix='_min23')
+
+        train2 = train2.join(train2.groupby(['code1',"code2"])['Sugars'].max(), on=['code1',"code2"], rsuffix='_max12')
+        train2 = train2.join(train2.groupby(['code1',"code3"])['Sugars'].max(), on=['code1',"code3"], rsuffix='_max13')
+        train2 = train2.join(train2.groupby(['code2',"code3"])['Sugars'].max(), on=['code2',"code3"], rsuffix='_max23')
+
+        test2 = test2.join(train2.groupby(['code1',"code2"])['Sugars'].max(), on=['code1',"code2"], rsuffix='_max12')
+        test2 = test2.join(train2.groupby(['code1',"code3"])['Sugars'].max(), on=['code1',"code3"], rsuffix='_max13')
+        test2 = test2.join(train2.groupby(['code2',"code3"])['Sugars'].max(), on=['code2',"code3"], rsuffix='_max23')
+
+        vectorizer = TfidfVectorizer(analyzer = "word", tokenizer = None, preprocessor = None, stop_words = None,
+                                     ngram_range=(1,2), max_features=100)
         # fit_transform() does two functions: First, it fits the model
         # and learns the vocabulary; second, it transforms our training data
         # into feature vectors. The input to fit_transform should be a list of
@@ -158,9 +193,18 @@ for sub in main_sub:
 
 
         train_data_features = pd.concat([train_data_features, train2[[ "Sugars_mean", "Sugars_min","Sugars_max",
+        # "Sugars_mean12","Sugars_mean13","Sugars_mean23",
+        # "Sugars_var12","Sugars_var13","Sugars_var23",
+        # "Sugars_max12","Sugars_max13","Sugars_max23",
+        # "Sugars_min12","Sugars_min13","Sugars_min23",
+
                                                                        "Sugars_var","SkuCode"]]], axis=1)
-        test_data_features = pd.concat([test_data_features, test2[["Sugars_mean", "Sugars_min","Sugars_max", "Sugars_var",
-                                                                   "SkuCode"]]], axis=1)
+        test_data_features = pd.concat([test_data_features, test2[["Sugars_mean", "Sugars_min","Sugars_max",
+        # "Sugars_mean12","Sugars_mean13","Sugars_mean23",
+        # "Sugars_var12","Sugars_var13","Sugars_var23",
+        # "Sugars_max12","Sugars_max13","Sugars_max23",
+        # "Sugars_min12","Sugars_min13","Sugars_min23",
+                                                                   "Sugars_var","SkuCode"]]], axis=1)
 
         feature_names = list(train_data_features.columns.values)
 
@@ -172,7 +216,7 @@ for sub in main_sub:
         params = {
                 "max_depth": 15,
                 'eta': 0.1,
-                'n_trees': 520,
+                'n_trees': 1000,
                 "eval_metric": "rmse",
                 "objective": "reg:linear",
                 "nthread" : 6,
