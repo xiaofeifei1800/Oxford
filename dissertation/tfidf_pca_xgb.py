@@ -28,10 +28,10 @@ def create_feature_map(features):
 train1 = pd.read_csv("/Users/xiaofeifei/I/Oxford/Dissertation/sub_g_data.csv")
 train1 = train1.fillna(0)
 
-main_sub = ["CEREAL", 'YOG', '311', '310', 'XBISC', 'LAY013', 'LAY083', 'DAY-SWEETS',
-             'ICREAM', '335', '338', '390', '396', '45']
-
-# main_sub = ["CEREAL"]
+# main_sub = ["CEREAL", 'YOG', '311', '310', 'XBISC', 'LAY013', 'LAY083', 'DAY-SWEETS',
+#              'ICREAM', '335', '338', '390', '396', '45']
+#
+main_sub = ["CEREAL"]
 
 result1 = {}
 result2 = {}
@@ -118,39 +118,51 @@ for sub in main_sub:
         test2 = test2.join(train2.groupby('MicroDeptCode')['Sugars'].max(), on='MicroDeptCode', rsuffix='_max')
         vectorizer = TfidfVectorizer(analyzer = "word", tokenizer = None, preprocessor = None, stop_words = None,
                                      ngram_range=(1,2), max_features=100)
+        # one way
+        train2 = train2.join(train2.groupby(['code1'])['Sugars'].mean(), on=['code1'], rsuffix='_mean1')
+        test2 = test2.join(train2.groupby(['code1'])['Sugars'].mean(), on=['code1'], rsuffix='_mean1')
 
-        # two way inter
-        train2 = train2.join(train2.groupby(['code1',"code2"])['Sugars'].mean(), on=['code1',"code2"], rsuffix='_mean12')
-        train2 = train2.join(train2.groupby(['code1',"code3"])['Sugars'].mean(), on=['code1',"code3"], rsuffix='_mean13')
-        train2 = train2.join(train2.groupby(['code2',"code3"])['Sugars'].mean(), on=['code2',"code3"], rsuffix='_mean23')
+        train2 = train2.join(train2.groupby('code1')['Sugars'].var(), on='code1', rsuffix='_var1')
+        test2 = test2.join(train2.groupby('code1')['Sugars'].var(), on='code1', rsuffix='_var1')
 
-        test2 = test2.join(train2.groupby(['code1',"code2"])['Sugars'].mean(), on=['code1',"code2"], rsuffix='_mean12')
-        test2 = test2.join(train2.groupby(['code1',"code3"])['Sugars'].mean(), on=['code1',"code3"], rsuffix='_mean13')
-        test2 = test2.join(train2.groupby(['code2',"code3"])['Sugars'].mean(), on=['code2',"code3"], rsuffix='_mean23')
+        train2 = train2.join(train2.groupby('code1')['Sugars'].min(), on='code1', rsuffix='_min1')
+        test2 = test2.join(train2.groupby('code1')['Sugars'].min(), on='code1', rsuffix='_min1')
 
-        train2 = train2.join(train2.groupby(['code1',"code2"])['Sugars'].var(), on=['code1',"code2"], rsuffix='_var12')
-        train2 = train2.join(train2.groupby(['code1',"code3"])['Sugars'].var(), on=['code1',"code3"], rsuffix='_var13')
-        train2 = train2.join(train2.groupby(['code2',"code3"])['Sugars'].var(), on=['code2',"code3"], rsuffix='_var23')
+        train2 = train2.join(train2.groupby('code1')['Sugars'].max(), on='code1', rsuffix='_max1')
+        test2 = test2.join(train2.groupby('code1')['Sugars'].max(), on='code1', rsuffix='_max1')
 
-        test2 = test2.join(train2.groupby(['code1',"code2"])['Sugars'].var(), on=['code1',"code2"], rsuffix='_var12')
-        test2 = test2.join(train2.groupby(['code1',"code3"])['Sugars'].var(), on=['code1',"code3"], rsuffix='_var13')
-        test2 = test2.join(train2.groupby(['code2',"code3"])['Sugars'].var(), on=['code2',"code3"], rsuffix='_var23')
-
-        train2 = train2.join(train2.groupby(['code1',"code2"])['Sugars'].min(), on=['code1',"code2"], rsuffix='_min12')
-        train2 = train2.join(train2.groupby(['code1',"code3"])['Sugars'].min(), on=['code1',"code3"], rsuffix='_min13')
-        train2 = train2.join(train2.groupby(['code2',"code3"])['Sugars'].min(), on=['code2',"code3"], rsuffix='_min23')
-
-        test2 = test2.join(train2.groupby(['code1',"code2"])['Sugars'].min(), on=['code1',"code2"], rsuffix='_min12')
-        test2 = test2.join(train2.groupby(['code1',"code3"])['Sugars'].min(), on=['code1',"code3"], rsuffix='_min13')
-        test2 = test2.join(train2.groupby(['code2',"code3"])['Sugars'].min(), on=['code2',"code3"], rsuffix='_min23')
-
-        train2 = train2.join(train2.groupby(['code1',"code2"])['Sugars'].max(), on=['code1',"code2"], rsuffix='_max12')
-        train2 = train2.join(train2.groupby(['code1',"code3"])['Sugars'].max(), on=['code1',"code3"], rsuffix='_max13')
-        train2 = train2.join(train2.groupby(['code2',"code3"])['Sugars'].max(), on=['code2',"code3"], rsuffix='_max23')
-
-        test2 = test2.join(train2.groupby(['code1',"code2"])['Sugars'].max(), on=['code1',"code2"], rsuffix='_max12')
-        test2 = test2.join(train2.groupby(['code1',"code3"])['Sugars'].max(), on=['code1',"code3"], rsuffix='_max13')
-        test2 = test2.join(train2.groupby(['code2',"code3"])['Sugars'].max(), on=['code2',"code3"], rsuffix='_max23')
+        # # two way inter
+        # train2 = train2.join(train2.groupby(['code1',"code2"])['Sugars'].mean(), on=['code1',"code2"], rsuffix='_mean12')
+        # train2 = train2.join(train2.groupby(['code1',"code3"])['Sugars'].mean(), on=['code1',"code3"], rsuffix='_mean13')
+        # train2 = train2.join(train2.groupby(['code2',"code3"])['Sugars'].mean(), on=['code2',"code3"], rsuffix='_mean23')
+        #
+        # test2 = test2.join(train2.groupby(['code1',"code2"])['Sugars'].mean(), on=['code1',"code2"], rsuffix='_mean12')
+        # test2 = test2.join(train2.groupby(['code1',"code3"])['Sugars'].mean(), on=['code1',"code3"], rsuffix='_mean13')
+        # test2 = test2.join(train2.groupby(['code2',"code3"])['Sugars'].mean(), on=['code2',"code3"], rsuffix='_mean23')
+        #
+        # train2 = train2.join(train2.groupby(['code1',"code2"])['Sugars'].var(), on=['code1',"code2"], rsuffix='_var12')
+        # train2 = train2.join(train2.groupby(['code1',"code3"])['Sugars'].var(), on=['code1',"code3"], rsuffix='_var13')
+        # train2 = train2.join(train2.groupby(['code2',"code3"])['Sugars'].var(), on=['code2',"code3"], rsuffix='_var23')
+        #
+        # test2 = test2.join(train2.groupby(['code1',"code2"])['Sugars'].var(), on=['code1',"code2"], rsuffix='_var12')
+        # test2 = test2.join(train2.groupby(['code1',"code3"])['Sugars'].var(), on=['code1',"code3"], rsuffix='_var13')
+        # test2 = test2.join(train2.groupby(['code2',"code3"])['Sugars'].var(), on=['code2',"code3"], rsuffix='_var23')
+        #
+        # train2 = train2.join(train2.groupby(['code1',"code2"])['Sugars'].min(), on=['code1',"code2"], rsuffix='_min12')
+        # train2 = train2.join(train2.groupby(['code1',"code3"])['Sugars'].min(), on=['code1',"code3"], rsuffix='_min13')
+        # train2 = train2.join(train2.groupby(['code2',"code3"])['Sugars'].min(), on=['code2',"code3"], rsuffix='_min23')
+        #
+        # test2 = test2.join(train2.groupby(['code1',"code2"])['Sugars'].min(), on=['code1',"code2"], rsuffix='_min12')
+        # test2 = test2.join(train2.groupby(['code1',"code3"])['Sugars'].min(), on=['code1',"code3"], rsuffix='_min13')
+        # test2 = test2.join(train2.groupby(['code2',"code3"])['Sugars'].min(), on=['code2',"code3"], rsuffix='_min23')
+        #
+        # train2 = train2.join(train2.groupby(['code1',"code2"])['Sugars'].max(), on=['code1',"code2"], rsuffix='_max12')
+        # train2 = train2.join(train2.groupby(['code1',"code3"])['Sugars'].max(), on=['code1',"code3"], rsuffix='_max13')
+        # train2 = train2.join(train2.groupby(['code2',"code3"])['Sugars'].max(), on=['code2',"code3"], rsuffix='_max23')
+        #
+        # test2 = test2.join(train2.groupby(['code1',"code2"])['Sugars'].max(), on=['code1',"code2"], rsuffix='_max12')
+        # test2 = test2.join(train2.groupby(['code1',"code3"])['Sugars'].max(), on=['code1',"code3"], rsuffix='_max13')
+        # test2 = test2.join(train2.groupby(['code2',"code3"])['Sugars'].max(), on=['code2',"code3"], rsuffix='_max23')
 
         vectorizer = TfidfVectorizer(analyzer = "word", tokenizer = None, preprocessor = None, stop_words = None,
                                      ngram_range=(1,2), max_features=100)
@@ -192,19 +204,23 @@ for sub in main_sub:
 
 
 
-        train_data_features = pd.concat([train_data_features, train2[[ "Sugars_mean", "Sugars_min","Sugars_max",
+        train_data_features = pd.concat([train_data_features, train2[[
+        "Sugars_mean", "Sugars_min","Sugars_max", "Sugars_var",
         # "Sugars_mean12","Sugars_mean13","Sugars_mean23",
         # "Sugars_var12","Sugars_var13","Sugars_var23",
         # "Sugars_max12","Sugars_max13","Sugars_max23",
         # "Sugars_min12","Sugars_min13","Sugars_min23",
+        "Sugars_mean1", "Sugars_min1","Sugars_max1", "Sugars_var1"
+                                                                        ,"SkuCode"]]], axis=1)
 
-                                                                       "Sugars_var","SkuCode"]]], axis=1)
-        test_data_features = pd.concat([test_data_features, test2[["Sugars_mean", "Sugars_min","Sugars_max",
+        test_data_features = pd.concat([test_data_features, test2[[
+        "Sugars_mean", "Sugars_min","Sugars_max", "Sugars_var",
         # "Sugars_mean12","Sugars_mean13","Sugars_mean23",
         # "Sugars_var12","Sugars_var13","Sugars_var23",
         # "Sugars_max12","Sugars_max13","Sugars_max23",
         # "Sugars_min12","Sugars_min13","Sugars_min23",
-                                                                   "Sugars_var","SkuCode"]]], axis=1)
+        "Sugars_mean1", "Sugars_min1","Sugars_max1", "Sugars_var1"
+                                                                        ,"SkuCode"]]], axis=1)
 
         feature_names = list(train_data_features.columns.values)
 
