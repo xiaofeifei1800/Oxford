@@ -20,7 +20,6 @@ from sklearn.linear_model import ElasticNet
 from sklearn.linear_model import LassoLarsCV
 from matplotlib import pylab as plt
 import operator
-import csv
 
 class LogExpPipeline(Pipeline):
     def fit(self, X, y):
@@ -39,11 +38,10 @@ def create_feature_map(features):
 
 train1 = pd.read_csv("/Users/xiaofeifei/I/Oxford/Dissertation/sub_g_data.csv")
 train1 = train1.fillna(0)
-train1 = train1.drop(["class"], axis=1)
 
 main_sub = ["CEREAL", 'YOG', '311', '310', 'XBISC', 'LAY013', 'LAY083', 'DAY-SWEETS',
              'ICREAM', '335', '338', '390', '396', '45']
-#
+
 # main_sub = ["CEREAL"]
 
 result1 = {}
@@ -53,6 +51,8 @@ for sub in main_sub:
     print sub
 
     train = train1.loc[train1['SubDeptCode'] == sub]
+    suger = train["Sugars"]
+    suger = suger.reset_index(drop=True)
 
     if train.shape[0]<=200:
         continue
@@ -106,29 +106,22 @@ for sub in main_sub:
     model2 = []
     model3 = []
 
-    for i in xrange(1):
+    for i in xrange(20):
 
-        X_train, X_valid, y_train, y_valid = train_test_split(clean_train_reviews, train["Sugars"], test_size=0.2, random_state=i)
+        X_train, X_valid, y_train, y_valid = train_test_split(clean_train_reviews, train["class"]-1, test_size=0.2, random_state=i)
         # Initialize the "CountVectorizer" object, which is scikit-learn's
         # bag of words tool.
+
 
         train2 = train.ix[list(y_train.index)]
         test2 = train.ix[list(y_valid.index)]
 
+        sugar_train = suger.ix[list(y_train.index)]
+        sugar_test = suger.ix[list(y_valid.index)]
+
+
         train2 = train2.reset_index(drop=True)
         test2 = test2.reset_index(drop=True)
-
-        word_len = []
-        for item in X_train:
-            word_len.append(len(item.split()))
-
-        train2["word_count"] = word_len
-
-        word_len = []
-        for item in X_valid:
-            word_len.append(len(item.split()))
-
-        test2["word_count"] = word_len
 
         train2 = train2.join(train2.groupby('MicroDeptCode')['Sugars'].mean(), on='MicroDeptCode', rsuffix='_mean')
         test2 = test2.join(train2.groupby('MicroDeptCode')['Sugars'].mean(), on='MicroDeptCode', rsuffix='_mean')
@@ -190,7 +183,7 @@ for sub in main_sub:
         # test2 = test2.join(train2.groupby(['code2',"code3"])['Sugars'].max(), on=['code2',"code3"], rsuffix='_max23')
 
         vectorizer = TfidfVectorizer(analyzer = "word", tokenizer = None, preprocessor = None, stop_words = None,
-                                     ngram_range=(1,1), max_features=100)
+                                     ngram_range=(1,2), max_features=100)
         # fit_transform() does two functions: First, it fits the model
         # and learns the vocabulary; second, it transforms our training data
         # into feature vectors. The input to fit_transform should be a list of
@@ -256,7 +249,7 @@ for sub in main_sub:
         # "Sugars_var12","Sugars_var13","Sugars_var23",
         # "Sugars_max12","Sugars_max13","Sugars_max23",
         # "Sugars_min12","Sugars_min13","Sugars_min23",
-        "Sugars_mean1", "Sugars_min1","Sugars_max1", "Sugars_var1","word_count"
+        "Sugars_mean1", "Sugars_min1","Sugars_max1", "Sugars_var1"
                                                                         ,"SkuCode"]]], axis=1)
 
         test_data_features = pd.concat([test_data_features, test2[[
@@ -265,15 +258,39 @@ for sub in main_sub:
         # "Sugars_var12","Sugars_var13","Sugars_var23",
         # "Sugars_max12","Sugars_max13","Sugars_max23",
         # "Sugars_min12","Sugars_min13","Sugars_min23",
-        "Sugars_mean1", "Sugars_min1","Sugars_max1", "Sugars_var1","word_count"
+        "Sugars_mean1", "Sugars_min1","Sugars_max1", "Sugars_var1"
                                                                         ,"SkuCode"]]], axis=1)
 
         feature_names = list(train_data_features.columns.values)
 
         create_feature_map(feature_names)
 
-
         dtrain = xgb.DMatrix(data =train_data_features, label = y_train)
+        dtest = xgb.DMatrix(data =test_data_features)
+
+        params = {
+                "max_depth": 15,
+                'eta': 0.1,
+                'n_trees': 1000,
+                "eval_metric": "auc",
+                "objective": "binary:logistic",
+                "nthread" : 6,
+                "early_stopping_rounds": 10,
+                'silent': 1
+        }
+
+        model = xgb.train(params, dtrain=dtrain)
+        pred = model.predict(dtest)
+
+        pred = pd.DataFrame(pred)
+        pred.columns = ['class']
+        test_data_features = pd.concat([test_data_features, pred], axis=1)
+
+        pred = pd.DataFrame(y_train)
+        pred = pred.reset_index(drop=True)
+        train_data_features = pd.concat([train_data_features, pred], axis=1)
+
+        dtrain = xgb.DMatrix(data =train_data_features, label = sugar_train)
         dtest = xgb.DMatrix(data =test_data_features)
 
         params = {
@@ -283,7 +300,7 @@ for sub in main_sub:
                 "eval_metric": "rmse",
                 "objective": "reg:linear",
                 "nthread" : 6,
-                "base_score" : np.mean(y_train["Sugars"]),
+                "base_score" : np.mean(sugar_train),
                 "early_stopping_rounds": 10,
                 'silent': 1
         }
@@ -298,9 +315,10 @@ for sub in main_sub:
         ######## svm ###########
         svm_pipe = LogExpPipeline(_name_estimators([RobustScaler(),
                                             SVR(kernel='rbf', C=30, epsilon=0.05)]))
+
         train_data_features = train_data_features.fillna(0)
         test_data_features = test_data_features.fillna(0)
-        svm_pipe.fit(train_data_features, y_train)
+        svm_pipe.fit(train_data_features, sugar_train)
         pred = svm_pipe.predict(test_data_features)[:]
 
         S_train[np.arange(test_data_features.shape[0]), 1] = pred.ravel()
@@ -308,22 +326,22 @@ for sub in main_sub:
         ############### en #############
 
         en = ElasticNet(alpha=0.01, l1_ratio=0.9)
-        en.fit(train_data_features, y_train)
+        en.fit(train_data_features, sugar_train)
         pred = en.predict(test_data_features)[:]
 
         S_train[np.arange(test_data_features.shape[0]), 2] = pred.ravel()
 
         ############ lasso ############
         lasso = LassoLarsCV(normalize=True)
-        lasso.fit(train_data_features, y_train)
+        lasso.fit(train_data_features, sugar_train)
         pred = lasso.predict(test_data_features)[:]
 
         S_train[np.arange(test_data_features.shape[0]), 3] = pred.ravel()
 
-        mse = mean_squared_error(y_valid,S_train.mean(axis=1))
+        mse = mean_squared_error(sugar_test,S_train.mean(axis=1))
         model2.append(mse)
 
-        mse = mean_squared_error(y_valid, np.repeat(np.mean(y_train["Sugars"]),y_valid.shape[0]))
+        mse = mean_squared_error(sugar_test, np.repeat(np.mean(sugar_train),sugar_test.shape[0]))
         model1.append(mse)
 
         micro_train = train.ix[list(y_train.index),["MicroDeptCode", "Sugars"]]
@@ -338,7 +356,7 @@ for sub in main_sub:
         micro_test = pd.merge(micro_test, micro_mean,how = "left", on='MicroDeptCode')
         micro_test = micro_test.fillna(0)
 
-        mse = mean_squared_error(y_valid,micro_test['micro_pred'])
+        mse = mean_squared_error(sugar_test,micro_test['micro_pred'])
         model3.append(mse)
 
     #
@@ -368,9 +386,22 @@ print np.mean(result1.values())
 print np.mean(result2.values())
 print np.mean(result3.values())
 
-print result1
-print result1.values()
 
-with open('/Users/xiaofeifei/I/Oxford/Dissertation/some.csv', 'ab') as f:
-    wr = csv.writer(f)
-    wr.writerow(result2.values())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

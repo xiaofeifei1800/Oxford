@@ -271,6 +271,8 @@ class Ensemble(object):
                 S_train[test_idx, i] = y_pred.ravel()
             oof_score = mean_squared_error(y, S_train[:, i])
             print 'Final Out-of-Fold Score %f'%oof_score
+        oof_score = mean_squared_error(y, S_train.mean(axis=1))
+        print 'Final ensemble Score %f'% oof_score
         return S_train
 
 #knn_pipe,svm_pipe, en,xgb_model, rf_model, Ridge, lasso, gbm
@@ -278,14 +280,14 @@ stack = Ensemble(n_splits=5,
                  #stacker=ElasticNetCV(l1_ratio=[x/10.0 for x in range(1,10)]),
                  stacker= xgb.XGBRegressor(max_depth=4, learning_rate=0.0045, subsample=0.93,
                                      objective='reg:linear', n_estimators=1300, base_score=y_mean),
-                 base_models=(knn_pipe,svm_pipe, en,xgb_model, rf_model, Ridge, lasso, gbm))
+                 base_models=(svm_pipe, en,xgb_model,lasso))
 
 S_train = stack.fit_predict(clean_train_reviews, train["Sugars"])
 
 S_train = pd.DataFrame(S_train)
 
-S_train.columns = ["knn", "svm", "en", "xgb", "rf", "Ridge", "lasso", "gbm"]
+# S_train.columns = ["knn", "svm", "en", "xgb", "rf", "Ridge", "lasso", "gbm"]
 # S_test.columns = ["knn", "svm", "en", "xgb", "rf", "Ridge", "lasso", "gbm"]
 #
-S_train.to_csv(path+'stacking_reg_train.csv', index=False)
+# S_train.to_csv(path+'stacking_reg_train.csv', index=False)
 # S_test.to_csv(path+'stacking_reg_test.csv', index=False)
