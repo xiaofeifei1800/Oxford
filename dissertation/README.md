@@ -31,12 +31,9 @@ The best model we have obtained during the dissertaion was ensemble the top 4 be
 Usage
 -----------------------
 
-* Switch to `code/feature` directory using `cd code/feature`
-* Run all R and Python files except `combine_all_features.R` to generate new features. The features files are all parallel, so they can be run in any order.
-* Run `combine_all_features.R` after run all other files in `code/feature`.(it is not necessary to run this file, combining features also can be customed in `model/lgbm.py`)
-* Switch to `model` dirctory
-* Run `lgbm.py`.
-    * This will dirctly train the lgbm model without CV, and predict the probability of each products
-* Run `F1 score max.py`.
-    * This will select the reordered products for each customer by maximizing F1 score.(This script is mainly contributed by faron)
+* Switch to `clean_code` directory using `cd clean_code`
+* Run `make_feautures.R`, `create features.py`, `add cluster by word2vec.py` sequentially to create the features.
+* Run `parameter tuning.py` to get the optimal hyper-parameters for models
+* Run `train_models.py` to ge the final predict results.
+ * We evaluate our model by 20 runs of 5-fold cross-validation
 
