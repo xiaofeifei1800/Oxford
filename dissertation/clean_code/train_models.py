@@ -33,6 +33,14 @@ train = train.fillna(0)
 
 y = train[['Sugars']]
 
+
+# feature selection
+# "Sugars_mean", "Sugars_min", "Sugars_max", "Sugars_var",
+# "Sugars_mean_s", "Sugars_min_s", "Sugars_max_s", "Sugars_var_s",
+# "code1", "code2", "code3",
+# "Sugars_mean1", "Sugars_min1", "Sugars_max1", "Sugars_var1", 'micro_num',
+# "SkuCode", 'Sugars',"OwnBrand"
+
 train_data_features = train.drop(['Sugars',"micro_num"], axis=1)
 
 S_train = np.zeros((20, 2))

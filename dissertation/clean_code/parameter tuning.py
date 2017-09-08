@@ -9,7 +9,7 @@ from scipy.stats import uniform as sp_rand
 from sklearn.linear_model import ElasticNet
 from scipy.stats import randint
 
-train = pd.read_csv("/Users/xiaofeifei/I/Oxford/Dissertation/GS_data.csv")
+train = pd.read_csv("/Users/xiaofeifei/I/Oxford/Dissertation/train_feature.csv")
 
 train = train.fillna(0)
 
