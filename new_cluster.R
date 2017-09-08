@@ -61,7 +61,7 @@ main_sub = c("CEREAL", 'YOG', '311', '310', 'XBISC', 'LAY013', 'LAY083', 'DAY-SW
 set.seed(123)
 # Compute and plot wss for k = 2 to k = 15.
 k.max <- 15
-data <- nutri[nutri$SubDeptCode%in% c("311", "310")]
+data <- nutri[nutri$SubDeptCode%in% c("311")]
 data = na.omit(data)
 wss <- sapply(1:k.max, 
               function(k){kmeans(data[,11:20, with=F], k, nstart=50,iter.max = 15 )$tot.withinss})
@@ -73,10 +73,10 @@ plot(1:k.max, wss,
 
 cluster = kmeans(data[,11:20, with=F], 2, nstart=50,iter.max = 15 )
 
-sm.density.compare(data$`Sugars per 100g`, cluster$cluster)
+sm.density.compare(data$Sugars, cluster$cluster)
 
-micro_clu1 = unique(data$SubDeptCode[cluster$cluster == 1])
-micro_clu2 = unique(data$SubDeptCode[cluster$cluster == 2])
+micro_clu1 = unique(data$MicroDeptCode[cluster$cluster == 1])
+micro_clu2 = unique(data$MicroDeptCode[cluster$cluster == 2])
 
 intersect(micro_clu1,micro_clu2)
 
