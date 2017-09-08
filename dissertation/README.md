@@ -4,7 +4,7 @@ Missing Data Imputation by Textual Data for Food Product
 
 This is my master dissertation. The goal of this dissertaion is using machine learning and data mining techniques to improve the ecoVerias current imputation method. EcoVerias method is that build a 3 level heriarchy structure (department, sub_department, micro-department) of the food product, and use the mean value of micro-department to replace the missing values. Because the products in micro-department are similar to each other.
 
-<img src="./Doc/Diagram.png" alt="FlowChart" align="center" width="700px"/>
+<img src="./Doc/Diagram.png" align="center" width="200px"/>
 
 
 The challenges that we faced in this dissertaion are:
