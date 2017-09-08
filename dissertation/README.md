@@ -8,6 +8,8 @@ The challenges that we faced in this dissertaion are:
 1. How to convert this problem to a machine learning problem.
 2. The limitaion of the less number of features (we only can use six variables which are department, sub_department, micro-department, product names, product ID, and own brand.)
 
+We define this is a regression problem and evaluate by MSE. We use the non-missing data as training set, and the miss data as test set, and encode heriarchy structure as categorical variables.
+Based on our exploratory analysis, we find the product names have a potential affect on missing value. We decide to use this feature into our model by transforming the words to vectors and also use it as another way to group similar products. Once we have the word vectors, we can expand the feature by NLP.
 
 The best model we have obtained during the dissertaion was ensemble the top 4 best models we have with MSE score 46.65, which improve 44.49% compared to ecoVerias method(MSE score 84.04).  
 
