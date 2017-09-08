@@ -3,24 +3,17 @@ import pandas as pd
 import numpy as np
 from sklearn.svm import SVR
 from sklearn.preprocessing import RobustScaler
-from sklearn.metrics.pairwise import euclidean_distances,manhattan_distances, cosine_distances,linear_kernel
 from nltk.corpus import stopwords
 from bs4 import BeautifulSoup
 from sklearn.metrics import mean_squared_error
 from sklearn.cross_validation import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-from sklearn.decomposition import PCA
 import xgboost as xgb
-from sklearn.random_projection import GaussianRandomProjection
-from sklearn.random_projection import SparseRandomProjection
 from sklearn.decomposition import PCA, FastICA
-from sklearn.decomposition import TruncatedSVD
 from sklearn.pipeline import make_pipeline, Pipeline, _name_estimators
 from sklearn.linear_model import ElasticNet
-from sklearn.linear_model import LassoLarsCV
-from matplotlib import pylab as plt
-import operator
-import csv
+from sklearn.linear_model import LassoLarsCV,Lasso
+
 
 class LogExpPipeline(Pipeline):
     def fit(self, X, y):
@@ -106,7 +99,7 @@ for sub in main_sub:
     model2 = []
     model3 = []
 
-    for i in xrange(1):
+    for i in xrange(20):
 
         X_train, X_valid, y_train, y_valid = train_test_split(clean_train_reviews, train["Sugars"], test_size=0.2, random_state=i)
         # Initialize the "CountVectorizer" object, which is scikit-learn's
@@ -252,21 +245,23 @@ for sub in main_sub:
 
         train_data_features = pd.concat([train_data_features, train2[[
         "Sugars_mean", "Sugars_min","Sugars_max", "Sugars_var",
+            "code1", "code2", "code3",
         # "Sugars_mean12","Sugars_mean13","Sugars_mean23",
         # "Sugars_var12","Sugars_var13","Sugars_var23",
         # "Sugars_max12","Sugars_max13","Sugars_max23",
         # "Sugars_min12","Sugars_min13","Sugars_min23",
-        "Sugars_mean1", "Sugars_min1","Sugars_max1", "Sugars_var1","word_count"
-                                                                        ,"SkuCode"]]], axis=1)
+        "Sugars_mean1", "Sugars_min1","Sugars_max1", "Sugars_var1",
+                                                "SkuCode"]]], axis=1)
 
         test_data_features = pd.concat([test_data_features, test2[[
         "Sugars_mean", "Sugars_min","Sugars_max", "Sugars_var",
+            "code1", "code2", "code3",
         # "Sugars_mean12","Sugars_mean13","Sugars_mean23",
         # "Sugars_var12","Sugars_var13","Sugars_var23",
         # "Sugars_max12","Sugars_max13","Sugars_max23",
         # "Sugars_min12","Sugars_min13","Sugars_min23",
-        "Sugars_mean1", "Sugars_min1","Sugars_max1", "Sugars_var1","word_count"
-                                                                        ,"SkuCode"]]], axis=1)
+        "Sugars_mean1", "Sugars_min1","Sugars_max1", "Sugars_var1",
+                                        "SkuCode"]]], axis=1)
 
         feature_names = list(train_data_features.columns.values)
 
@@ -277,18 +272,17 @@ for sub in main_sub:
         dtest = xgb.DMatrix(data =test_data_features)
 
         params = {
-                "max_depth": 15,
+                "max_depth": 7,
                 'eta': 0.1,
-                'n_trees': 1000,
+                'reg_alpha':1,
                 "eval_metric": "rmse",
                 "objective": "reg:linear",
                 "nthread" : 6,
                 "base_score" : np.mean(y_train["Sugars"]),
-                "early_stopping_rounds": 10,
                 'silent': 1
         }
 
-        model = xgb.train(params, dtrain=dtrain)
+        model = xgb.train(params, dtrain=dtrain,num_boost_round=40)
         pred = model.predict(dtest)
 
         S_train = np.zeros((test_data_features.shape[0], 4))
@@ -305,16 +299,16 @@ for sub in main_sub:
 
         S_train[np.arange(test_data_features.shape[0]), 1] = pred.ravel()
 
-        ############### en #############
+        ############### en #############57.9964231533
 
-        en = ElasticNet(alpha=0.01, l1_ratio=0.9)
+        en = ElasticNet(alpha=0.005, l1_ratio=0.5)
         en.fit(train_data_features, y_train)
         pred = en.predict(test_data_features)[:]
 
         S_train[np.arange(test_data_features.shape[0]), 2] = pred.ravel()
 
-        ############ lasso ############
-        lasso = LassoLarsCV(normalize=True)
+        ############ lasso ############ 56.8123535273
+        lasso = Lasso(normalize=True,alpha=0.01)
         lasso.fit(train_data_features, y_train)
         pred = lasso.predict(test_data_features)[:]
 
@@ -357,20 +351,27 @@ for sub in main_sub:
 
 
 
-    importance = model.get_fscore(fmap='xgb.fmap')
-    importance = sorted(importance.items(), key=operator.itemgetter(1))
-    ft = pd.DataFrame(importance, columns=['feature', 'fscore'])
-
-    ft.plot(kind='barh', x='feature', y='fscore', legend=False, figsize=(10, 25))
-    plt.gcf().savefig('features_importance.png')
+# importance = model.get_fscore(fmap='xgb.fmap')
+# importance = sorted(importance.items(), key=operator.itemgetter(1))
+# ft = pd.DataFrame(importance, columns=['feature', 'fscore'])
+#
+# ft.to_csv("/Users/xiaofeifei/I/Oxford/Dissertation/feature_importance.csv")
+# ft.plot(kind='barh', x='feature', y='fscore', legend=False, figsize=(10, 25))
+# plt.gcf().savefig('features_importance.png')
 
 print np.mean(result1.values())
 print np.mean(result2.values())
 print np.mean(result3.values())
 
-print result1
-print result1.values()
+# print result1
+# print result1.values()
+#
+# with open('/Users/xiaofeifei/I/Oxford/Dissertation/some.csv', 'ab') as f:
+#     wr = csv.writer(f)
+#     wr.writerow(result2.values())
 
-with open('/Users/xiaofeifei/I/Oxford/Dissertation/some.csv', 'ab') as f:
-    wr = csv.writer(f)
-    wr.writerow(result2.values())
+#56.8123535273 ensemble
+#59.9441630458 xgb
+# 66.8169045656 svr
+# 75.4565602039 en
+# 70. lasso

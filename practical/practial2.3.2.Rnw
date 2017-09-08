@@ -216,7 +216,7 @@ For Autocorrelation plot, if autocorrelation does not show decreasing, it indica
 \centering
 \begin{tabular}{rr}
   \hline
- & temp \\ 
+ & Effective Size \\ 
   \hline
 (Intercept) & 225.08 \\ 
   northing2 & 633.81 \\ 

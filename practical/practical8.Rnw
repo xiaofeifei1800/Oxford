@@ -12,6 +12,7 @@
 \title{Generalised Linear Models, Assessed Practical}
 \author{Practical No. P049}
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 
 
 \maketitle

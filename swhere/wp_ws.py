@@ -4,12 +4,11 @@ from lightgbm import LGBMRegressor
 from sklearn.model_selection import KFold
 from sklearn.metrics import mean_squared_error
 
-
+# load in data
 power_data = pd.read_csv("/Users/xiaofeifei/GitHub/Oxford/all_power.csv", nrows=1000000)
 wind = pd.read_csv("/Users/xiaofeifei/GitHub/Oxford/clean_wind.csv", nrows=1000)
 
-
-# add lags
+# add lags function
 def buildLaggedFeatures(s, lag=2, dropna=True):
     if type(s) is pd.DataFrame:
         new_dict = {}
@@ -17,7 +16,7 @@ def buildLaggedFeatures(s, lag=2, dropna=True):
             new_dict[col_name] = s[col_name]
             # create lagged Series
             for l in range(1, lag + 1):
-                new_dict['%s_lag%d' % (col_name, l)] = s[col_name].shift(-l)
+                new_dict['%s_lag%d' % (col_name, l)] = s[col_name].shift(l)
         res = pd.DataFrame(new_dict, index=s.index)
 
     elif type(s) is pd.Series:
@@ -34,9 +33,7 @@ def buildLaggedFeatures(s, lag=2, dropna=True):
 
 # add fold
 time = int(np.round(power_data.shape[0] / float(600)))
-
 fold = np.repeat(np.arange(1, time + 1, 1), 600)
-
 power_data["fold"] = fold[1:power_data.shape[0] + 1]
 
 del time, fold
@@ -44,20 +41,24 @@ del time, fold
 # predict wp by ws
 wind = pd.merge(wind, power_data, on='date', how='left')
 
+del power_data
+
+# create new variables w2 = ws^2, w3 = ws^3
 wind["ws1"] = wind["windspeed_forecast"]
 wind["ws2"] = np.square(wind["ws1"])
 wind["ws3"] = np.power(wind["ws1"], 3)
+wind.drop(["windspeed_forecast"], axis = 1)
 
 X = wind[["ws1", "ws2", "ws3","fold","id"]]
 y = wind[["wp","fold"]]
 
+# 5 fold cv, split by fold
 n_splits = 5
-
 folds = list(KFold(n_splits=n_splits, shuffle=True, random_state=2016).split(list(set(X["fold"]))))
 
-S_train = pd.DataFrame()
+# save the pred result
+cv_result = pd.DataFrame()
 for j, (train_idx, test_idx) in enumerate(folds):
-
 
     fold = list(set(X["fold"]))
     train_idx = [fold[x] for x in list(train_idx)]
@@ -69,6 +70,8 @@ for j, (train_idx, test_idx) in enumerate(folds):
     y_holdout = y.loc[y['fold'].isin(test_idx)]
 
     id = X_holdout["id"].values
+    farm = X_holdout['farm'].values
+
     y_train = np.array(y_train.drop('fold', axis=1)).ravel()
 
     X_train=np.array(X_train.drop('fold', axis=1))
@@ -86,16 +89,28 @@ for j, (train_idx, test_idx) in enumerate(folds):
     print ("Model fold %d score %f" % (j, mean_squared_error(y_holdout["wp"], y_pred)))
     y_pred = pd.DataFrame(y_pred)
 
-
     id = pd.DataFrame(id)
-    y_pred = pd.concat([y_pred, id], axis=1, ignore_index=True)
+    farm = pd.DataFrame(farm)
+    y_pred = pd.concat([y_pred, id, farm], axis=1, ignore_index=True)
 
-    S_train = pd.concat([S_train, y_pred], axis=0)
+    cv_result = pd.concat([cv_result, y_pred], axis=0)
 
-S_train.columns = ['wp_pred', 'id']
-res = buildLaggedFeatures(S_train["wp_pred"], lag=3, dropna=False)
-S_train = pd.concat([S_train.drop('wp_pred', axis=1),res],axis=1)
+    del id, farm, y_pred
 
-print S_train
 
-S_train.to_csv("/Users/xiaofeifei/GitHub/Oxford/wp_speed.csv", index =False)
+# rename the columns
+cv_result.columns = ['wp_pred', 'id', 'farm']
+cv_result = cv_result.sort(['id'], ascending=[1])
+
+# add 3 lags of predict wp by farm
+wp_ws = pd.DataFrame()
+
+for i in xrange(1, 26):
+    farm = cv_result[cv_result["farm"] == i]
+    res = buildLaggedFeatures(farm["wp_pred"], lag=6, dropna=False)
+    farm = pd.concat([farm, res], axis=1)
+    wp_ws = pd.concat([wp_ws, farm], axis=0)
+
+
+
+wp_ws.to_csv("/Users/xiaofeifei/GitHub/Oxford/wp_speed.csv", index =False)

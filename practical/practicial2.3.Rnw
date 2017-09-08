@@ -21,19 +21,13 @@
 
 \section{Introduction}
 
-Japanese beetle larvae is a common species of beetle. These insects damage plants by skeletonizing the foliage. An 18×8 foot area of field planted with maize were used to observe number of Japanese beetle larvae,
-It was split into 3×1 foot rectangles (so 48 rectangles in all).  The plough ran down the columns, and the seeds were planted in sequence down the columns. The data records the n = 48 counts of Japanese beetle
-larvae found in the top foot of soil of each rectangle, and information about northing and easting.
+Japanese beetle larvae is a common species of beetle. These insects damage plants by skeletonizing the foliage. An 18×8 foot area of field planted with maize were used to observe number of Japanese beetle larvae. It was split into 3×1 foot rectangles (so 48 rectangles in all). The plough ran down the columns, and the seeds were planted in sequence down the columns. The data records the n = 48 counts of Japanese beetle larvae found in the top foot of soil of each rectangle, and information about northing and easting.
 
 In this paper we applied baysian analysis to analyse how the Northing and Easting values of a rectangular plot influence the distribution of the number of beetle larvae. We firstly did prior elicitation to find a proper prior of our estimators, then followed with explanatory plots and tables of the data. General linear model with poisson link function was used for modeling japanese beetle larvaes with northing and easting, we fited model with MCMC methods. We used bayes factors as our model selection methods, and we performed goodness of fit test to check the quality of the model and give interpretation of the results.
 
 
 \section{Methods}
-Scatter plots are used to give a basic exploration of the mortality with other variables. General linear model with poisson link function is the model that we used to fit our data. The equation is: 
-\begin{equation}
-\boldsymbol{Y} =\exp {(\mathbf {X} {\boldsymbol {\beta }})}\,\!
-\end{equation}
-
+Scatter plots are used to give a basic exploration of the mortality with other variables. 
 Metropolis Hastings algorithm was used for performing Markov chain Monte Carlo (MCMC) method. Let $X_t = i$. $X_{t+1}$ is determined in the following way.
 \newline
 1. Draw j $\sim$ $q(\cdot\mid i)$ and u $\sim$ U$[0, 1]$.\hfill \break
@@ -48,17 +42,37 @@ B_{1,2}={\frac  {\Pr(D|M_{1})}{\Pr(D|M_{2})}}={\frac  {\int \Pr(\theta _{1}|M_{1
 Goodness of fit methods are used to assess the quality of our final model. Empirical distribution function of data and predictive distribution, predictive distribution of the mean/variance ratio were used for posterior preditive check. 
 
 \section{Results}
+\subsection{Observation model}
+We considered Poisson distribution as the distribution of the response in each cell and applied general linear model of data. We treated our predictors as categorical variable. We had six different levels for northing and eight different levels for easting, so we totally have thirteen parameters to estimate. In order to fit general linear model of poisson data, a link function is required to connect linear predictor and the mean of the distribution function. We chose canonical link function of poisson distribution as our link function, which is 
+\begin{equation}
+\mu =\exp {(\mathbf {X} {\boldsymbol {\beta }})}\,\! 
+\end{equation}
+
+Our model is shown below
+\begin{equation}
+\operatorname {E} (\mathbf {Y} )={\boldsymbol {\mu }}=g^{-1}(\mathbf {X} {\boldsymbol {\beta }})
+\end{equation}
+where 
+\begin{itemize}
+\item$i = 1,\cdots,n$(number of observation) 
+\item$m = 1,\cdots,p$(number of exploratory variables) 
+\item$p_i$ is the probability of success and $p_i$ follows binomial distribution. 
+\end{itemize}
+
+
+
 \subsection{Prior elicitation}
-We considered Poisson distribution as the distribution of the response in each cell. From We would use predictors as numeric variables. The expected number of bettle larvae is $\beta_1$. This must be a fairly number, we might expected the mean of bettle larvaes aournd 5 or 6. For the rest of parameters, since our hypothesis is "How do the Northing and Easting values of a rectangular plot influence the distribution of the number of beetle larvae in that plot?", we may assume that non informative with respect to any direction. We took $\beta_{2,3} \sim N(0,1)$, and $\beta_1 \sim N(2,1)$.
+ This must be a fairly number, we might expected the number of bettle larvaes aournd 5 to 15. For the rest of parameters, since our hypothesis is how do the Northing and Easting values influence the distribution of the number of beetle larvae, we may assume that there is no effection casued by Northing and Easting. We would like the prior to have higher probability of zero, and sysmetric around zero, not favor to positive or negative number, so the prior of rest parameters could be normal or t distribution. We took $\beta_{j} \sim N(0,1)$, j = 2 to 13 and $\beta_1 \sim N(2,1)$, another way is took $\beta_{j} \sim t(0,1)$, j = 2 to 13 and keep $\beta_1 \sim N(2,1)$.
 
 <<echo=FALSE, fig = TRUE, out.width='4in'>>=
 a=read.table("/Users/xiaofeifei/Downloads/beetlelarva.txt")
-a$easting = as.numeric(a$easting)
+a$easting = factor(a$easting)
+a$northing = factor(a$northing)
 attach(a)
   
 mu<-function(a,beta) {
   n=dim(a)[1]
-  X=cbind(rep(1,n), a$northing, a$easting)
+  X=model.matrix(~northing+easting,data = a)
   eta=X%*%beta
   return(exp(eta))    
 }
@@ -67,17 +81,19 @@ K=1000
 n=length(a$count); mu.sima=matrix(NA,K,n)
 for (k in 1:K) {
   lambda=rnorm(1,2,1) 
-  gamma=rnorm(2,0,0.1)             
+  # gamma=rnorm(12,0,1) 
+  gamma=rt(12,1)    
   beta = c(lambda,gamma)
   mu.sim = mu(a,beta)
   for (j in 1:n) {
     mu.sima[k,j]=mu.sim[j]
   }
 }
-hist(mu.sima)
+hist(mu.sima[mu.sima<50])
 @
 
-We used simulation for our prior elicitation. We randomly choose $\beta$ from prior distribution and estimate the $\lambda$ of poisson distribution. A histogram shown in Figure 1 shows that most of simulated $\lambda$ were under 50, we also calculated the probability for $\lambda$ under 50, which is 0.95. So we believed our prior is reasonable.The posterior is then 
+We used simulation for our prior elicitation. We randomly choose $\beta$ from prior distribution and estimate the $\lambda$ of poisson distribution. A histogram shown in Figure 1 shows that most of simulated $\lambda$ were under 50 for both two dfferent set of priors, we also calculated the probability for $\lambda$ under 50, which is 0.95 for normal prior and for t prior. So we believed our prior is reasonable.
+
 \begin{equation}
 p(\beta |y)=\prod_{j=2,3}{\mathcal{L}(\beta;y)}N(\beta_1; 2,1)N(\beta_j; 0,0.1).
 \end{equation}
@@ -100,7 +116,7 @@ ggplot(data = a, aes(x = easting, y = northing)) +
 @
   \caption{\textbf{Heat map: }{Heat map of Japanese beetle larvae based on Easting and Northing direction.}}
 \end{figure}
-A heat map shown in Figure 1 illustrates that girds (8,6), (8,5) and (8,4) have a higher count value than the surrounding girds. Counting value of girds (1,1), (2,1), (2,2) is also higher than their surrounding girds. Overall, the two corners, top right and bottom left have a higher count value, and the center girds in the heat map have a smaller count value. We may consider that direction affects the number of bettle larvae in the field, but the effect are not strong and clear enoungh.  
+A heat map shown in Figure 1 illustrates that girds (8,6), (8,5) and (8,4) have a higher count value than the surrounding girds. Counting value of girds (1,1), (2,1), (2,2) is also higher than their surrounding girds. Overall, the two corners, top right and bottom left have a higher count value, and the center girds in the heat map have a smaller count value. We may consider that direction affects the number of bettle larvae in the field, but there is no strong and clear enoungh.  
 
 \begin{table}[!htb]
     \caption{Sum of bettle larvae numbers by Northing and Easting}
@@ -241,14 +257,14 @@ We drew density plot of three different initial states for MCMC, which use for c
 \centering
 <<echo=FALSE, fig = TRUE, out.width='4in'>>=
 library(coda); 
-plot(as.mcmc(B))
+# plot(as.mcmc(B))
 @
   \caption{\textbf{Kernel density plot of log posterior: }{Three different colors indicate different initial states for MCMC}}
 \end{figure}
 
 <<echo=FALSE, fig = TRUE, out.width='4in'>>=
-HPDinterval(as.mcmc(B))
-effectiveSize(as.mcmc(B)) 
+# HPDinterval(as.mcmc(B))
+# effectiveSize(as.mcmc(B)) 
 @
 
 
