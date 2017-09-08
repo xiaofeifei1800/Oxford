@@ -1,32 +1,28 @@
 
-nstacart Market Basket Analysis
+Missing Data Imputation by Textual Data for Food Product
 -----------------------
 
-This competition gives customer orders over time, and the aim of this competition is to predict if existing customers will order the same products which they order previously. [here](https://www.kaggle.com/c/instacart-market-basket-analysis).
+This is my master dissertation. The goal of this dissertaion is using machine learning and data mining techniques to improve the ecoVerias current imputation method. EcoVerias method is that build a 3 level heriarchy structure (department, sub_department, micro-department) of the food product, and use the mean value of micro-department to replace the missing values. Because the products in micro-department are similar to each other.
 
-The best model we have obtained during the competition was ensemble the top 4 best models we have with F1 score maximization of Public LB score 0.4056450 (Rank 110/2623 top4%) and Private LB score 0.4034573(Rank 189/2623 top8%).
+The challenges that we faced in this dissertaion are:
+1. How to convert this problem to a machine learning problem.
+2. The limitaion of the less number of features (we only can use six variables which are department, sub_department, micro-department, product names, product ID, and own brand.)
+
+
+The best model we have obtained during the dissertaion was ensemble the top 4 best models we have with MSE score 46.65, which improve 44.49% compared to ecoVerias method(MSE score 84.04).  
 
 ----------------------
-### Download the data
+### FlowChart
 <img src="./Doc/pipline.png" alt="FlowChart" align="center" width="700px"/>
 
 ### Download the data
 
-* Clone this repo to your computer.
-* Get into the folder using `cd Basket`.
-* Run `mkdir data`.
-* Switch into the `data` directory using `cd data`.
-* Download the data files from Kaggle into the `data` directory.  
-    * You can find the data [here](https://www.kaggle.com/c/instacart-market-basket-analysis/data).
-    * You'll need to register with Kaggle and accept the agreement to download the data.
-* Extract all of the `.zip` files you downloaded.
-* Remove all the zip files by running `rm *.zip`.
-* Switch back into the `Basket` directory using `cd ..`.
+* Because of the confidentiality agreement, I cannot provide the data, but I suggest to crawl some data online to run the scripts
 
 ### Install the requirements
  
 * Install the requirements using `pip install -r requirements.txt`.
-    * Make sure you use Python 3.0.
+    * Make sure you use Python 2.7.
     * You may want to use a virtual environment for this.
 
 Usage
