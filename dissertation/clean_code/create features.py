@@ -125,7 +125,7 @@ train_data_features = pd.concat([train_data_features, DataVecs, train[[
     "Sugars_mean", "Sugars_min", "Sugars_max", "Sugars_var",
     "Sugars_mean_s", "Sugars_min_s", "Sugars_max_s", "Sugars_var_s",
     "code1", "code2", "code3",
-    "Sugars_mean1", "Sugars_min1", "Sugars_max1", "Sugars_var1", 'micro_num',
+    "Sugars_mean1", "Sugars_min1", "Sugars_max1", "Sugars_var1",
     "SkuCode", 'Sugars',"OwnBrand"]]], axis=1)
 
 
