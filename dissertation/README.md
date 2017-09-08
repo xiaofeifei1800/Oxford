@@ -8,7 +8,7 @@ The best model we have obtained during the competition was ensemble the top 4 be
 
 ----------------------
 ### Download the data
-<img src="./Doc/FlowChart.jpg" alt="FlowChart" align="center" width="700px"/>
+<img src="./Doc/pipline.png" alt="FlowChart" align="center" width="700px"/>
 
 ### Download the data
 
