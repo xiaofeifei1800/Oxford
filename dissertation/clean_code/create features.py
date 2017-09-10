@@ -59,18 +59,18 @@ main_sub = ["CEREAL", 'YOG', '311', '310', 'XBISC', 'LAY013', 'LAY083', 'DAY-SWE
 
 
 train = train.loc[train['SubDeptCode'].isin(main_sub)]
-num_reviews = train["SkuName"].size
+num_names = train["SkuName"].size
 
 # clean product names
 clean_names = []
 
-for i in xrange(0, num_reviews):
+for i in xrange(0, num_names):
     clean_names.append(name_to_words(train["SkuName"][i]))
 
 clean_names = []
-for i in xrange(0, num_reviews):
+for i in xrange(0, num_names):
     if ((i + 1) % 1000 == 0):
-        print "Review %d of %d\n" % (i + 1, num_reviews)
+        print "Review %d of %d\n" % (i + 1, num_names)
     clean_names.append(name_to_words(train["SkuName"][i]))
 
 # create new features
