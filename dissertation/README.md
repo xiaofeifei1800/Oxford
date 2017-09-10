@@ -9,7 +9,7 @@ This is my master dissertation. The goal of this dissertaion is using machine le
 
 The challenges that we faced in this dissertaion are:
 1. How to convert this problem to a machine learning problem.
-2. The limitaion of the less number of features (we only can use six variables which are department, sub_department, micro-department, product names, product ID, and own brand.)
+2. The limitation of the less number of features (we only can use six variables which are department, sub_department, micro-department, product names, product ID, and own brand.)
 
 We define this is a regression problem and evaluate by MSE. We use the non-missing data as training set, and the miss data as test set, and encode hierarchy structure as categorical variables.
 
